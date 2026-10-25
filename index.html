@@ -541,7 +541,7 @@
       date: '날짜2',
       msgs: [
         { me: true, t: '내용4', time: '시간4' },
-        { me: false, t: '누나 뭐 해요?', time: '시간5' }
+        { me: false, t: '누나 뭐 해요?', time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) }
       ]
     }
   ];
