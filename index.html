@@ -110,6 +110,13 @@
 
   #kroom { position: absolute; inset: 0; z-index: 4; background: #b2c7da; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .35s ease; }
   #kroom.show { transform: none; }
+  .group-notice { display:none; flex:none; padding:10px 14px; background:#fff; border-bottom:1px solid #e8e8e8; font-size:12px; color:#333; cursor:pointer; line-height:1.4; }
+  .group-notice.show { display:flex; gap:8px; align-items:center; }
+  .group-notice .pin { color:#777; font-size:15px; }
+  .group-notice .notice-text { flex:1; }
+  .group-notice .notice-arrow { color:#999; }
+  .group-avatar { flex:none; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:1px; overflow:hidden; border-radius:36%; background:#ddd; }
+  .group-avatar img { width:100%; height:100%; object-fit:cover; min-width:0; min-height:0; }
   .rhead { flex: none; height: 96px; padding: 50px 14px 0; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; }
   .rhead .back { padding: 0 6px 4px; font-size: 32px; font-weight: 300; line-height: 1; cursor: pointer; }
   .rbody { flex: 1; overflow-y: auto; padding: 6px 12px 12px; scrollbar-width: none; }
@@ -451,6 +458,7 @@
       <div class="ktabs" id="ktabs"></div>
       <div id="kroom">
         <div class="rhead"><span class="back" id="rback">‹</span><span id="rname"></span></div>
+        <div class="group-notice" id="groupNotice"><span class="pin">📌</span><span class="notice-text" id="groupNoticeText"></span><span class="notice-arrow">›</span></div>
         <div class="rbody" id="rbody"></div>
         <div class="kin"><span>＋</span><div class="fld"></div><span>➤</span></div>
       </div>
@@ -714,6 +722,82 @@
     { name: '정사이', ph: '프로필 사진5', f: 'TWS.jpeg', bg: 'graybg.jpg', status: 'Hot  hot 뜨거 뜨거' },
   ];
 
+  /* ===== 4인 단체 채팅방: 이름/공지/첫 메시지는 자유롭게 수정하세요 ===== */
+  const groupMembers = [
+    { name: '문하나', f: me.f, ph: me.ph, me: true },
+    friendList.find(x => x.name === '시준휘'),
+    friendList.find(x => x.name === '부희주'),
+    friendList.find(x => x.name === '정사이')
+  ];
+  const groupChat = {
+    name: '공주들 톡방💅🏻',
+    notice: '공지📢 걸스나잇 5/16 날짜 바꾸면 판 엎을거임 장소협찬: 시준휘 집 ',
+    /* 날짜별로 대화를 나눠 적으세요. date는 화면에 표시할 날짜라 원하는 대로 바꾸면 됩니다.
+       새로운 날짜의 대화는 days 안에 { date: '5월 16일 토요일', msgs: [ ... ] } 묶음을 추가하세요.
+       날짜 묶음은 과거 날짜부터 최근 날짜 순서로 작성하세요. */
+    days: [
+      {
+        date: '3월 24일 목요일',
+        msgs: [
+          { name: '시준휘', t: '꽁주들 얼굴 까먹것어;; 걸나하자', time: '20:14' },
+          { name: '부희주', t: '헐 저 돈 없어서 길거리 나앉기 직전..👉🏻👈🏻', time: '20:15' },
+          { name: '부희주', t: '준휘 누나가 협찬해주나?', time: '20:15' },
+          { name: '정사이', t: '제발 가챠 뽑는데 적당히 쓰자', time: '20:16' },
+          { name: '정사이', t: '쟤 어제 가챠에만 10만원 씀', time: '20:16' },
+          { name: '시준휘', t: ';;;;; 5/16 ㅇㄸ', time: '20:16' },
+          { name: '부희주', t: '언니 최고 💗💗', time: '20:17' },
+          { name: '문하나', t: '저도 ㄱㄴ이용', time: '20:18', me: true },
+          { name: '정사이', t: '이번에 생새우회 해묵자 나 어제 불닭 소스 삼', time: '20:20' },
+          { name: '시준휘', t: '헐 조아ㅏ', time: '20:20' }
+        ]
+      },
+{
+        date: '3월 25일 금요일',
+        msgs: [
+          { name: '정사이', t: '다들 어디', time: '11:37' },
+          { name: '부희주', t: '저 오늘 남친이랑 밥 먹어욤', time: '11:40' },
+          { name: '시준휘', t: '죽어', time: '11:41' },
+          { name: '부희주', t: '부러우면 재결합 ㄱㄱ', time: '11:43' },
+          { name: '시준휘', t: '걸스나잇 현관문 취침 확정', time: '11:43' },
+          { name: '정사이', t: '하나 어디임!!!', time: '11:43' },
+          { name: '문하나', t: '나 오늘 후배랑 밥약.. 다들 맛점하시길..', time: '11:46', me: true },
+          { name: '시준휘', t: '후배~? ㄴㄱ??', time: '11:46' },
+          { name: '정사이', t: '키 엄청 큼 목소리도 엄청 큼', time: '11:46' },
+          { name: '부희주', t: '연하 ㅁㅊ', time: '11:46' },
+          { name: '문하나', t: '그냥 밥만 먹는 거;;', time: '11:46', me: true },
+          { name: '시준휘', t: '잘 해봐~~~😏😏', time: '11:50' }
+        ]
+      },
+{
+        date: '4월 1일 수요일',
+        msgs: [
+          { name: '문하나', t: '님들 비상', time: '17:05', me: true },
+          { name: '문하나', img: 'cp.png', time: '17:05', me: true },
+          { name: '문하나', t: '이번 주에 또 먹자는데?', time: '17:05', me: true },
+          { name: '정사이', t: '어? 사귄다', time: '17:08' },
+          { name: '시준휘', t: '그냥 배고픈 친구 아님..?', time: '17:10' },
+          { name: '부희주', t: '사귄다고???', time: '17:11' },
+          { name: '문하나', t: '아니 아니라고', time: '17:11', me: true },
+          { name: '시준휘', t: '일단 한 번 더 ㄱㄱ 우리가 널 놓아줄게', time: '17:11' },
+          { name: '시준휘', t: '나는쓸쓸하고외롭게점심먹으면그만이야음그래', time: '17:11' },
+          { name: '정사이', t: '너 나랑 밥 먹자네;;', time: '17:12' },
+          { name: '시준휘', t: '사이공주 💗 너 뿐이야 💗', time: '17:15' },
+          { name: '문하나', t: '일단 ㅇㅋ', time: '17:16', me: true }
+        ]
+      },
+
+
+    ]
+  };
+  const groupLastMessage = () => {
+    const lastDay = groupChat.days[groupChat.days.length - 1];
+    return lastDay.msgs[lastDay.msgs.length - 1];
+  };
+  const groupAvatar = size =>
+    `<div class="group-avatar" style="width:${size}px;height:${size}px">` +
+    groupMembers.map(p => `<img src="${p.f}" alt="" onerror="this.style.background='#dfe3e8';this.style.visibility='hidden'">`).join('') +
+    `</div>`;
+
   /* ===== 채팅방별 대화 내용 =====
      키(이름)는 friendList의 name과 똑같이 써야 해요.
      새 채팅방: friendList에 친구를 추가하고, 여기에 '이름': [ ... ] 를 추가하면 끝!
@@ -969,14 +1053,22 @@
         `<div class="sec">친구 ${friendList.length}</div>` +
         friendList.map((f, i) => `<div class="srow click friend-row" data-friend-index="${i}">${avatar(f, 48)}<b>${f.name}</b></div>`).join('');
     } else {
-      /* 대화가 있는 친구마다 채팅방 한 줄씩 (friendList 순서) */
-      $('kmain').innerHTML = friendList
+      /* 대화가 있는 친구마다 채팅방 한 줄씩 만들고, 단톡방은 김운학 바로 아래에 배치 */
+      const chatRows = friendList
         .map((f, i) => ({ f, i, m: lastMsg(f) }))
         .filter(x => x.m)
         .map(({ f, i, m }) =>
           `<div class="srow click crow" data-friend-index="${i}">${avatar(f, 52)}` +
           `<div class="ct"><b>${f.name}</b><div class="cl">${preview(m)}</div></div><div class="tm">${m.time}</div></div>`
-        ).join('');
+        );
+      const groupLast = groupLastMessage();
+      const groupRow =
+        `<div class="srow click crow group-row" data-group-chat="1">${groupAvatar(52)}` +
+        `<div class="ct"><b>${groupChat.name} <span style="font-weight:400;color:#999">4</span></b><div class="cl">${groupLast.t}</div></div><div class="tm">${groupLast.time}</div></div>`;
+      const woonhakRowIndex = friendList.findIndex(f => f.name === '김운학');
+      const visibleWoonhakIndex = chatRows.findIndex(row => row.includes(`data-friend-index="${woonhakRowIndex}"`));
+      chatRows.splice(visibleWoonhakIndex >= 0 ? visibleWoonhakIndex + 1 : 0, 0, groupRow);
+      $('kmain').innerHTML = chatRows.join('');
     }
 
     $('ktabs').innerHTML = tabs.map(x =>
@@ -985,6 +1077,32 @@
   }
 
   function openRoom() {
+    if (activeFriend && activeFriend.isGroup) {
+      $('rname').textContent = `${groupChat.name} ${groupMembers.length}`;
+      $('groupNoticeText').textContent = groupChat.notice;
+      $('groupNotice').classList.add('show');
+      $('rbody').innerHTML = groupChat.days.map(day =>
+        `<div class="dsep"><span>${day.date}</span></div>` +
+        day.msgs.map((m, i) => {
+          const p = groupMembers.find(x => x.name === m.name) || groupMembers[0];
+          const prev = i > 0 ? day.msgs[i - 1] : null;
+          const first = !prev || prev.name !== m.name;
+          const bubble = m.img
+  ? `<div class="bub img-only"><img class="chat-img" src="${m.img}" alt=""></div>`
+  : `<div class="bub">${m.t}</div>`;
+
+if (m.me) {
+  return `<div class="m me"><i>${m.time}</i>${bubble}</div>`;
+}
+
+return `<div class="m">${first ? avatar(p, 38) : '<div class="sp"></div>'}<div class="mc">${first ? `<div class="mn">${m.name}</div>` : ''}<div class="mb">${bubble}<i>${m.time}</i></div></div></div>`;
+        }).join('')
+      ).join('');
+      room.classList.add('show');
+      $('rbody').scrollTop = $('rbody').scrollHeight;
+      return;
+    }
+    $('groupNotice').classList.remove('show');
     $('rname').textContent = activeFriend.name;
     const log = chats[activeFriend.name] || [];
 
@@ -1046,6 +1164,12 @@
       return;
     }
 
+    const groupRow = e.target.closest('.group-row');
+    if (groupRow) {
+      activeFriend = { name: groupChat.name, isGroup: true };
+      openRoom();
+      return;
+    }
     const crow = e.target.closest('.crow');
     if (crow) {
       activeFriend = friendList[Number(crow.dataset.friendIndex)];
