@@ -122,6 +122,23 @@
   .mb { display: flex; align-items: flex-end; gap: 5px; }
   .bub { max-width: 230px; padding: 8px 11px; border-radius: 14px; background: #fff; color: #111; font-size: 14px; line-height: 1.4; word-break: break-all; }
   .m.me .bub { background: #fee500; }
+  .bub.img-only { padding: 0; background: none !important; }
+  .chat-img { display: block; max-width: 200px; max-height: 260px; border-radius: 14px; object-fit: cover; cursor: zoom-in; }
+
+  /* ---------- 사진 크게 보기 ---------- */
+  #viewer {
+    position: absolute; inset: 0; z-index: 40;
+    background: rgba(0,0,0,.94);
+    display: flex; align-items: center; justify-content: center;
+    padding: 90px 12px 40px;   /* 위쪽을 비워 둬서 사진이 상태 표시줄을 가리지 않게 */
+    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    cursor: zoom-out;
+  }
+  #viewer.show { opacity: 1; pointer-events: auto; }
+  #viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .viewer-x { position: absolute; top: 56px; right: 20px; color: #fff; font-size: 26px; line-height: 1; pointer-events: none; }
+  /* 사진을 크게 볼 때는 상태 표시줄을 흰색으로 */
+  .phone:has(#viewer.show) .status-bar { color: #fff; }
   .m i { font-style: normal; font-size: 10px; color: #4b5b6a; white-space: nowrap; }
   .sp { flex: none; width: 38px; }
   .kin { flex: none; height: 70px; padding: 8px 14px 24px; background: #fff; display: flex; align-items: center; gap: 12px; color: #888; font-size: 20px; }
@@ -310,6 +327,12 @@
     <!-- 알림 배너 -->
     <div id="banner"></div>
 
+    <!-- 사진 크게 보기 (채팅 속 사진을 누르면 열리고, 아무 데나 누르면 닫혀요) -->
+    <div id="viewer">
+      <img id="viewerImg" alt="">
+      <span class="viewer-x">✕</span>
+    </div>
+
     <!-- 카카오톡 -->
     <div class="layer" id="kakao">
       <div class="khead" id="khead"></div>
@@ -334,18 +357,18 @@
           <div class="profile-status" id="profileStatus">상태메시지1</div>
           <div class="profile-actions">
             <button class="profile-action" id="profileChat">
-		<span class="profile-action-icon">
-    			<img src="chat.png" alt="1:1 채팅" class="profile-custom-icon">
-  </span>
-  <span>1:1 채팅</span>
-</button>
+              <span class="profile-action-icon">
+                <img src="chat.png" alt="1:1 채팅" class="profile-custom-icon">
+              </span>
+              <span>1:1 채팅</span>
+            </button>
 
-<button class="profile-action" id="profileCall">
-  <span class="profile-action-icon">
-    <img src="phone.png" alt="통화" class="profile-custom-icon">
-  </span>
-  <span>통화</span>
-</button>
+            <button class="profile-action" id="profileCall">
+              <span class="profile-action-icon">
+                <img src="phone.png" alt="통화" class="profile-custom-icon">
+              </span>
+              <span>통화</span>
+            </button>
 
           </div>
         </div>
@@ -519,32 +542,100 @@
   }
 
   /* ===== 카카오톡 대화 내용 ===== */
-  const me = { name: '내 이름', ph: '내 프로필 사진', f: 'me.png' };
+  const me = { name: '문하나', ph: '내 프로필 사진', f: 'hanaprofile.jpg' };
   const friend = { name: '김운학', ph: '프로필 사진1', f: 'Woonhak.jpeg' };
 
   const friendList = [
-    { ...friend, bg: '배경1.svg', status: '상태메시지1' },
-    { name: '명재현', ph: '프로필 사진2', f: 'myung.jpeg', bg: '배경2.svg', status: '상태메시지2' },
-    { name: '우지호', ph: '프로필 사진3', f: 'zico.jpeg', bg: '배경3.svg', status: '상태메시지3' }
+    { ...friend, bg: 'graybg.jpg', status: 'Cafe diem' },
+    { name: '명재현', ph: '프로필 사진2', f: 'myung.jpeg', bg: 'jhbg.jpg', status: 'ONU 24' },
+    { name: '우지호', ph: '프로필 사진3', f: 'zico.jpeg', bg: 'graybg.jpg', status: '😴' }
   ];
 
-  const chatLog = [
-    {
-      date: '날짜1',
-      msgs: [
-        { me: false, t: '내용1', time: '시간1' },
-        { me: false, t: '내용2', time: '시간2' },
-        { me: true, t: '내용3', time: '시간3' }
-      ]
-    },
-    {
-      date: '날짜2',
-      msgs: [
-        { me: true, t: '내용4', time: '시간4' },
-        { me: false, t: '누나 뭐 해요?', time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) }
-      ]
-    }
-  ];
+  /* ===== 채팅방별 대화 내용 =====
+     키(이름)는 friendList의 name과 똑같이 써야 해요.
+     새 채팅방: friendList에 친구를 추가하고, 여기에 '이름': [ ... ] 를 추가하면 끝!
+     (me: true = 내가 보낸 말, me: false = 상대가 보낸 말)
+
+     ★ 글 메시지:   { me: false, t: '안녕', time: '18:20' }
+     ★ 사진 메시지: { me: false, img: 'talk.jpg', time: '18:20' }
+     ★ 날짜 묶음 { date, msgs } 사이에는 꼭 쉼표(,)! 마지막 묶음 뒤에만 없어도 돼요.
+     ★ 날짜 묶음은 위(과거) → 아래(최근) 순서로! 맨 아래 메시지가 채팅 목록에 미리보기로 떠요. */
+  const chats = {
+    '김운학': [
+      {
+        date: '3월 25일 목요일',
+        msgs: [
+          { me: false, t: '안녕하심까! 27학번 김운학이라고 함다! 다름이 아니라 짝선후배 관련해서 연락드렸습니다😊', time: '13:11' },
+          { me: true, t: '안녕하세요☺️ 문하나입니다! 입학 축하해요~ 즐거운 대학 생활 보내요!', time: '13:52' },
+          { me: false, t: '선배님, 혹시 많이 바쁘십니까? 저 내일 학식 같이 먹을 사람이 없슴다! ', time: '13:52' },
+          { me: false, t: '수강 신청 망해서 쓸쓸하게 먹게 됐는데', time: '13:52' },
+          { me: false, t: '혹시 맛있는 거 드시러 가시겠습니까?', time: '13:52' },
+          { me: true, t: '말 편하게 해도 될 것 같아요~ 저도 내일 공강 있어서 학교 밖에 나가서 밥 먹을래요? 맛집 소개시켜 줄게요!', time: '14:50' },
+          { me: true, t: '일식 괜찮아요?', time: '14:50' },
+          { me: true, t: '맛집링크', time: '14:50' },
+          { me: false, t: '좋슴다!!!', time: '14:51' },
+          { me: false, t: '내일 1시 정문에서 볼까요?', time: '14:51' },
+          { me: true, t: '네~', time: '15:05' }
+        ]
+      },
+      {
+        date: '날짜2',
+        msgs: [
+          { me: false, t: '누나 어디에요??', time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) }
+        ]
+      }
+    ],
+
+    '명재현': [
+      {
+        date: '10월 28일 수요일',
+        msgs: [
+          { me: false, t: '님 담주 바쁨?', time: '18:20' },
+          { me: true, t: 'ㄴㄴ 왜', time: '18:31' },
+          { me: false, t: '나 한 번만 도와줘 제발 신입생 면접 학생회 인원 펑크남', time: '18:33' },
+          { me: false, t: '근데 믿을 만한 사람이 너밖에 없어 제발', time: '18:33' },
+          { me: true, t: '그거 이틀인가 삼일동안 하루종일', time: '18:34' },
+          { me: true, t: '추운 복도에서 안내하는 거 아님?', time: '18:34' },
+          { me: false, t: 'ㄴㄴ 너는 내가 난로 앞에 세워줄게', time: '18:34' },
+          { me: false, t: '그리고 이거 봉사시간 8시간 줌', time: '18:34' },
+          { me: true, t: '그럼 ㅇㅋ', time: '18:34' },
+          { me: false, t: '너 학번 뭐ㅓ지 명단에 올려야 함', time: '18:34' },
+          { me: true, t: '20241129', time: '18:34' },
+          { me: false, t: 'ㅇㅋ ㄱㅅ', time: '18:34' }
+        ]
+      },
+      {
+        date: '3월 4일 수요일',
+        msgs: [
+          { me: false, t: '님 오늘 개총 옴??', time: '17:00' },
+          { me: true, t: 'ㄴㄴ 나 항상 안 가는 거 알잖아', time: '17:15' },
+          { me: false, t: 'ㅇㅋ 혹시나 해서', time: '17:22' }
+        ]
+      },
+      {
+        date: '3월 25일 목요일',
+        msgs: [
+          { me: true, t: '야 나 짝후배가 연락 옴 뭐라고 답해야 함? ', time: '13:44' },
+          { me: true, t: '나 사회 생활 안한 지 좀 지나서;; ', time: '13:44' },
+          { me: false, img: 'talk.jpg', time: '13:45' },
+          { me: false, t: '잘 해봐', time: '13:45' },
+          { me: true, t: '하 .. 일단 ㅇㅋ', time: '13:50' }
+        ]
+      }
+
+    ],
+
+    '우지호': [
+      {
+        date: '4월 5일 월요일',
+        msgs: [
+          { me: false, t: '누나 오늘 학식 뭐 나와요?', time: '12:03' },
+          { me: true, t: '돈까스!', time: '12:10' },
+          { me: false, t: '오 가야겠다 ㅋㅋ', time: '12:11' }
+        ]
+      }
+    ]
+  };
 
   const notice = { text: '왜 전화 안 받아', time: '지금' };
 
@@ -552,8 +643,19 @@
     `<div class="av" style="width:${size}px;height:${size}px"><span>${p.ph}</span>` +
     `<img src="${p.f}" alt="" onload="this.previousSibling.remove()" onerror="this.remove()"></div>`;
 
-  const lastMsg = () => {
-    const d = chatLog[chatLog.length - 1];
+  /* 사진이면 사진 말풍선, 아니면 글 말풍선 */
+  const bubble = m => m.img
+    ? `<div class="bub img-only"><img class="chat-img" src="${m.img}" alt=""></div>`
+    : `<div class="bub">${m.t}</div>`;
+
+  /* 채팅 목록·알림에 보여줄 미리보기 (사진이면 '사진') */
+  const preview = m => m.img ? '사진' : m.t;
+
+  /* 해당 친구와의 마지막 메시지 (대화가 없으면 null) */
+  const lastMsg = f => {
+    const log = chats[f.name] || [];
+    if (!log.length) return null;
+    const d = log[log.length - 1];
     return d.msgs[d.msgs.length - 1];
   };
 
@@ -589,11 +691,14 @@
         `<div class="sec">친구 ${friendList.length}</div>` +
         friendList.map((f, i) => `<div class="srow click friend-row" data-friend-index="${i}">${avatar(f, 48)}<b>${f.name}</b></div>`).join('');
     } else {
-      const m = lastMsg();
-      $('kmain').innerHTML =
-        `<div class="srow click crow" id="croom">${avatar(friend, 52)}` +
-        `<div class="ct"><b>${friend.name}</b><div class="cl">${m.t}</div></div><div class="tm">${m.time}</div></div>`;
-      $('croom').addEventListener('click', openRoom);
+      /* 대화가 있는 친구마다 채팅방 한 줄씩 (friendList 순서) */
+      $('kmain').innerHTML = friendList
+        .map((f, i) => ({ f, i, m: lastMsg(f) }))
+        .filter(x => x.m)
+        .map(({ f, i, m }) =>
+          `<div class="srow click crow" data-friend-index="${i}">${avatar(f, 52)}` +
+          `<div class="ct"><b>${f.name}</b><div class="cl">${preview(m)}</div></div><div class="tm">${m.time}</div></div>`
+        ).join('');
     }
 
     $('ktabs').innerHTML = tabs.map(x =>
@@ -603,8 +708,9 @@
 
   function openRoom() {
     $('rname').textContent = activeFriend.name;
+    const log = chats[activeFriend.name] || [];
 
-    $('rbody').innerHTML = chatLog.map(d => {
+    $('rbody').innerHTML = log.map(d => {
       let prev = null;
 
       return `<div class="dsep"><span>${d.date}</span></div>` +
@@ -613,17 +719,22 @@
           prev = m.me;
 
           if (m.me) {
-            return `<div class="m me"><i>${m.time}</i><div class="bub">${m.t}</div></div>`;
+            return `<div class="m me"><i>${m.time}</i>${bubble(m)}</div>`;
           }
 
           return `<div class="m">${first ? avatar(activeFriend, 38) : '<div class="sp"></div>'}<div class="mc">` +
             `${first ? `<div class="mn">${activeFriend.name}</div>` : ''}` +
-            `<div class="mb"><div class="bub">${m.t}</div><i>${m.time}</i></div></div></div>`;
+            `<div class="mb">${bubble(m)}<i>${m.time}</i></div></div></div>`;
         }).join('');
     }).join('');
 
     room.classList.add('show');
     $('rbody').scrollTop = $('rbody').scrollHeight;
+
+    /* 사진은 늦게 불러와지니까, 다 뜬 뒤에 다시 맨 아래로 */
+    $('rbody').querySelectorAll('.chat-img').forEach(img =>
+      img.addEventListener('load', () => { $('rbody').scrollTop = $('rbody').scrollHeight; })
+    );
   }
 
 
@@ -649,9 +760,19 @@
     $('kprofile').classList.add('show');
   }
 
+  /* 친구 목록 → 프로필 / 채팅 목록 → 해당 채팅방 */
   $('kmain').addEventListener('click', e => {
     const row = e.target.closest('.friend-row');
-    if (row) openProfile(friendList[Number(row.dataset.friendIndex)]);
+    if (row) {
+      openProfile(friendList[Number(row.dataset.friendIndex)]);
+      return;
+    }
+
+    const crow = e.target.closest('.crow');
+    if (crow) {
+      activeFriend = friendList[Number(crow.dataset.friendIndex)];
+      openRoom();
+    }
   });
   $('profileBack').addEventListener('click', () => $('kprofile').classList.remove('show'));
   $('profileChat').addEventListener('click', () => {
@@ -668,6 +789,15 @@
   }
 
   $('rback').addEventListener('click', () => room.classList.remove('show'));
+
+  /* 채팅 속 사진을 누르면 크게 보기 / 아무 데나 누르면 닫기 */
+  $('rbody').addEventListener('click', e => {
+    const img = e.target.closest('.chat-img');
+    if (!img) return;
+    $('viewerImg').src = img.src;
+    $('viewer').classList.add('show');
+  });
+  $('viewer').addEventListener('click', () => $('viewer').classList.remove('show'));
 
   $('ktabs').addEventListener('click', e => {
     const t = e.target.closest('.ktab.act');
@@ -695,24 +825,25 @@
     if (dy < -40 || Math.abs(dy) < 8) {
       kakao.classList.remove('show');
       room.classList.remove('show');
+      $('kprofile').classList.remove('show');   // 프로필이 열린 채로 남지 않게
     }
   });
 
   /* ===== 알림 배너 ===== */
   const banner = $('banner');
 
-  // 가장 최근에 친구가 보낸 메시지를 알림에 표시
+  // 김운학이 가장 최근에 보낸 메시지를 알림에 표시
   const latest =
-    [...chatLog].reverse()
+    [...chats[friend.name]].reverse()
       .flatMap(d => [...d.msgs].reverse())
-      .find(m => !m.me) || lastMsg();
+      .find(m => !m.me) || lastMsg(friend);
 
   banner.innerHTML =
     `<div class="bicon"><img src="Woonhak.jpeg" alt="" onerror="this.remove()"></div>` +
     `<div class="btxt">` +
       `<div class="btop"><span>카카오톡</span><span>${notice.time}</span></div>` +
       `<div class="bname">${friend.name}</div>` +
-      `<div class="bbody">${latest.t}</div>` +
+      `<div class="bbody">${preview(latest)}</div>` +
     `</div>`;
 
   function showBanner() {
@@ -728,6 +859,7 @@
   // 알림을 누르면 김운학과의 채팅방으로 이동
   banner.addEventListener('click', () => {
     banner.classList.remove('show');
+    activeFriend = friend;
     openKakao('chat');
     openRoom();
   });
