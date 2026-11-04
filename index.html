@@ -479,7 +479,7 @@
           <div class="profile-name" id="profileName"></div>
           <div class="profile-status" id="profileStatus">상태메시지1</div>
           <div class="profile-actions">
-            <button class="profile-action" id="profileChat">
+            <button class="profile-action" id="profileChat" disabled>
               <span class="profile-action-icon">
                 <img src="chat.png" alt="1:1 채팅" class="profile-custom-icon">
               </span>
@@ -1464,12 +1464,7 @@
     }
   });
   $('profileBack').addEventListener('click', () => $('kprofile').classList.remove('show'));
-  $('profileChat').addEventListener('click', () => {
-    if (!selectedProfile) return;
-    activeFriend = selectedProfile;
-    $('kprofile').classList.remove('show');
-    openRoom();
-  });
+  $('profileChat').addEventListener('click', () => {});
   $('profileCall').addEventListener('click', () => {});
 
   function openKakao(t) {
@@ -1550,11 +1545,11 @@
 
   /* ----- 사람들 (handle = 인스타 아이디, name = DM에 보이는 이름, f = 프로필 사진 파일) ----- */
   const igUsers = [
-    { handle: 'woonhak_kim',   name: '김운학',  ph: '프로필 사진1', f: 'Woonhak.jpeg' },
-    { handle: 'jaehyun_myung', name: '명재현',  ph: '프로필 사진2', f: 'myung.jpeg' },
-    { handle: 'jiho_woo',      name: '우지호',  ph: '프로필 사진3', f: 'zico.jpeg' },
-    { handle: 'campus_24',     name: '캠퍼스24', ph: '프로필 사진4', f: 'ig_user4.jpg' },
-    { handle: 'lab_daily',     name: '실습일기', ph: '프로필 사진5', f: 'ig_user5.jpg' }
+    { handle: 'kokoroga_atsuii',   name: '김운학',  ph: '프로필 사진1', f: 'Woonhak.jpeg' },
+    { handle: 'mjhhh', name: '명재현',  ph: '프로필 사진2', f: 'myung.jpeg' },
+    { handle: 'woozico0914',      name: '우지호',  ph: '프로필 사진3', f: 'zico.jpeg' },
+    { handle: 'campus_24',     name: '캠퍼스24', ph: '프로필 사진4', f: 'campus.jpeg' },
+    { handle: '20s_story',     name: '20s_story', ph: '프로필 사진5', f: '20s.png' }
   ];
 
   /* ----- 스토리 (u = 위 igUsers 의 번호, slides = 스토리 사진들) ----- */
@@ -1568,53 +1563,14 @@
 
   /* ----- 피드 (u = igUsers 번호, f = 게시물 사진 파일, likes = 좋아요 수) ----- */
   const igPosts = [
-    { u: 0, f: 'feed1.jpg', ph: '피드 사진 1', likes: 128,  liked: false, caption: '오늘 학식 은근 맛있다 🍱', time: '2시간 전', comments: 12 },
-    { u: 3, f: 'feed2.jpg', ph: '피드 사진 2', likes: 1204, liked: false, caption: '가을 캠퍼스 🍂', time: '5시간 전', comments: 48 },
-    { u: 1, f: 'feed3.jpg', ph: '피드 사진 3', likes: 56,   liked: false, caption: '면접 안내 준비 끝!', time: '어제', comments: 5 },
-    { u: 2, f: 'feed4.jpg', ph: '피드 사진 4', likes: 87,   liked: false, caption: '😴', time: '2일 전', comments: 9 },
-    { u: 4, f: 'feed5.jpg', ph: '피드 사진 5', likes: 310,  liked: false, caption: '실습 끝나고 한 컷', time: '3일 전', comments: 21 }
+    { u: 0, f: 'daewoon.jpeg', ph: 'daewoon.jpeg', likes: 128,  liked: true, caption: '☀️😎', time: '2시간 전', comments: 12 },
+    { u: 4, f: 'ssum.png', ph: '피드 사진 5', likes: 310,  liked: false, caption: '썸 탈때 꼭 알아야하는 꿀팁 #썸 #꿀팁', time: '3시간 전', comments: 21 },
+    { u: 1, f: 'jp.jpeg', ph: '피드 사진 3', likes: 133,   liked: false, caption: '📍🇯🇵', time: '5일 전', comments: 16 },
+    { u: 2, f: 'festi.jpeg', ph: '피드 사진 4', likes: 87,   liked: false, caption: 'festi👣', time: '7일 전', comments: 9 },
   ];
 
   /* ----- DM (키 = 인스타 아이디, 형식은 카카오톡 chats 와 같아요) -----
-     글: { me: false, t: '안녕', time: '18:20' }   사진: { me: false, img: 'dm1.jpg', time: '18:20' } */
-  const igDMs = {
-    'woonhak_kim': [
-      {
-        date: '3월 25일 목요일 15:10',
-        msgs: [
-          { me: false, t: '선배님 인스타 맞팔해요!', time: '15:10' },
-          { me: true, t: 'ㅋㅋ 팔로우 했어~', time: '15:12' },
-          { me: false, t: '감사함다!!', time: '15:12' }
-        ]
-      },
-      {
-        date: '3월 26일 금요일',
-        msgs: [
-          { me: false, t: '누나 어디에요??', time: nowHM() }
-        ]
-      }
-    ],
-    'jaehyun_myung': [
-      {
-        date: '10월 28일 수요일',
-        msgs: [
-          { me: false, t: '스토리 봤냐 ㅋㅋ', time: '20:11' },
-          { me: true, t: '봄 ㅋㅋㅋ', time: '20:14' }
-        ]
-      }
-    ],
-    'jiho_woo': [
-      {
-        date: '4월 5일 월요일',
-        msgs: [
-          { me: false, t: '누나 이 카페 가봤어요?', time: '19:02' },
-          { me: false, img: 'dm_photo.jpg', time: '19:02' },
-          { me: true, t: '아직! 가보고 싶다', time: '19:10' }
-        ]
-      }
-    ]
-  };
-
+     
   /* ===== 여기부터는 동작 코드 (건드리지 않아도 돼요) ===== */
   const HEART = 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
   const svg = inner => `<svg class="isvg" viewBox="0 0 24 24">${inner}</svg>`;
@@ -1645,7 +1601,7 @@
   $('itabs').innerHTML =
     `<div class="itab on">${igi.home}</div>` +
     `<div class="itab">${igi.reels}</div>` +
-    `<div class="itab dm act">${igi.share}<span class="badge">2</span></div>` +
+    `<div class="itab">${igi.share}<span class="badge">2</span></div>` +
     `<div class="itab">${igi.search}</div>` +
     `<div class="itab">${igAv(igMe, 26)}</div>`;
   $('dmicons').innerHTML = igi.video + igi.edit;
