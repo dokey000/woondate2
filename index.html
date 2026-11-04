@@ -152,8 +152,22 @@
   .phone:has(#viewer.show) .status-bar { color: #fff; }
   .m i { font-style: normal; font-size: 10px; color: #4b5b6a; white-space: nowrap; }
   .sp { flex: none; width: 38px; }
+
+  /* 채팅 입력창: 글자가 입력되는 중 + 보내기 버튼 */
   .kin { flex: none; height: 70px; padding: 8px 14px 24px; background: #fff; display: flex; align-items: center; gap: 12px; color: #888; font-size: 20px; }
-  .kin .fld { flex: 1; height: 34px; border-radius: 17px; background: #f1f1f1; }
+  .kin .fld {
+    flex: 1; height: 34px; border-radius: 17px; background: #f1f1f1;
+    display: flex; align-items: center; padding: 0 14px;
+    font-size: 14px; color: #111; text-align: left; white-space: nowrap; overflow: hidden;
+  }
+  .kin .fld.typing::after { content: ""; width: 1.5px; height: 16px; margin-left: 1px; background: #111; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .ksend {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #aaa; background: transparent;
+  }
+  .ksend.ready { background: #fee500; color: #111; cursor: pointer; }
 
 /* iPhone 스타일 상태 표시줄 */
 .status-bar {
@@ -449,8 +463,10 @@
   </div>
 </div>
 
-    <!-- 홈화면 -->
+    <!-- 알림 배너 -->
 <div id="banner"></div>
+
+    <!-- 홈화면 -->
     <div class="layer" id="home">
       <div class="grid" id="grid"></div>
       <div class="dock" id="dock"></div>
@@ -472,7 +488,7 @@
         <div class="rhead"><span class="back" id="rback">‹</span><span id="rname"></span></div>
         <div class="group-notice" id="groupNotice"><span class="pin">📌</span><span class="notice-text" id="groupNoticeText"></span><span class="notice-arrow">›</span></div>
         <div class="rbody" id="rbody"></div>
-        <div class="kin"><span>＋</span><div class="fld"></div><span>➤</span></div>
+        <div class="kin"><span>＋</span><div class="fld" id="kfld"></div><span class="ksend" id="ksend">➤</span></div>
       </div>
 
       <!-- 친구 프로필 화면: 배경/프로필 사진은 .svg, .png, .jpg 등 이미지 파일 사용 가능 -->
@@ -585,7 +601,7 @@
     { id: 'kakao', n: '카카오톡', p: '카카오톡1', f: 'kakao.png' },
     { id: 'insta', n: 'instagram', p: '인스타그램1', f: 'instagram.webp' },
     { n: '사진', p: '사진1', f: 'images.webp' },
-    { n: '메모', p: '메모1', f: 'memo.webp' }
+    { n: '블로그', p: '블로그', f: 'blog.png' }
   ];
 
   const dockApps = [
@@ -710,6 +726,11 @@
       pass.style.opacity = 0;
       pass.classList.remove('active');
       home.classList.add('show');
+      /* 알림을 눌러서 잠금해제한 경우 → 바로 김운학 채팅방으로 */
+      if (evOpenAfterUnlock) {
+        evOpenAfterUnlock = false;
+        setTimeout(goEventRoom, 350);
+      }
     } else {
       $('dots').classList.add('shake');
       setTimeout(() => {
@@ -915,7 +936,10 @@
      ★ 글 메시지:   { me: false, t: '안녕', time: '18:20' }
      ★ 사진 메시지: { me: false, img: 'talk.jpg', time: '18:20' }
      ★ 날짜 묶음 { date, msgs } 사이에는 꼭 쉼표(,)! 마지막 묶음 뒤에만 없어도 돼요.
-     ★ 날짜 묶음은 위(과거) → 아래(최근) 순서로! 맨 아래 메시지가 채팅 목록에 미리보기로 떠요. */
+     ★ 날짜 묶음은 위(과거) → 아래(최근) 순서로! 맨 아래 메시지가 채팅 목록에 미리보기로 떠요.
+
+     ★ 김운학의 '11월 5일 수요일' 대화는 여기 없어요!
+       HTML을 연 지 2분 뒤에 아래쪽 "삭제된 메시지 이벤트" 코드가 자동으로 추가해요. */
   const chats = {
     '김운학': [
       {
@@ -1191,20 +1215,8 @@
           { me: true, t: '바쁜 일이 있어서 ㅠㅠ', time: '18:05' },
           { me: false, t: '알겠슴다! 조심히 들어가세요!', time: '18:05' },
         ]
-      },
- {
-        date: '11월 5일 수요일',
-        msgs: [
-          { me: false, t: '누나 혹시 저 불편하세요?', time: '02:32', deleted: true },
-          { me: false, t: '누나 재현이 형이랑 어디 갔어요?', time: '02:32', deleted: true },
-          { me: false, t: '재현이 형이랑 아무것도 아니죠?', time: '02:32', deleted: true },
-          { me: false, t: '저 누나 계속 좋아해도 되죠?', time: '02:32', deleted: true },
-          { me: true, t: '삭제된 메시지 뭐야?', time: '08:23' },
-          { me: false, t: '아 아무것도 아니예요', time: '08:23' },
-          { me: false, t: '친구한테 보내려다 잘못 보냈어요', time: '08:23' },
-          { me: true, t: '오키', time: '09:00' },
-        ]
-      },
+      }
+      /* 11월 5일 수요일 대화는 2분 뒤 이벤트로 추가돼요 (아래 코드 참고) */
 
     ],
 
@@ -1273,9 +1285,11 @@
       {
         date: '4월 5일 월요일',
         msgs: [
+          { me: true, t: '지아코', time: '12:03' },
           { me: false, t: '인간의 욕심은 끝이 없고 같은 실수를 반복하지', time: '12:03' },
-          { me: true, t: '지아코', time: '12:10' },
-          { me: false, t: '지코', time: '12:11' }
+          { me: true, t: '너그럽게 살면서 대박을 노린다면 어림 반푼어치', time: '12:10' },
+          { me: false, t: '떼창 떼창 떼창해라', time: '12:11' },
+          { me: true, t: 'We hit the jackpot baby', time: '12:11' },
         ]
       }
     ]
@@ -1362,6 +1376,36 @@
     ).join('');
   }
 
+  /* 1:1 채팅방 내용 그리기 (보내기/도착할 때마다 다시 그려요) */
+  function renderDirect() {
+    const log = chats[activeFriend.name] || [];
+
+    $('rbody').innerHTML = log.map(d => {
+      let prev = null;
+
+      return `<div class="dsep"><span>${d.date}</span></div>` +
+        d.msgs.map(m => {
+          const first = prev !== m.me;
+          prev = m.me;
+
+          if (m.me) {
+            return `<div class="m me"><i>${m.time}</i>${bubble(m)}</div>`;
+          }
+
+          return `<div class="m">${first ? avatar(activeFriend, 38) : '<div class="sp"></div>'}<div class="mc">` +
+            `${first ? `<div class="mn">${activeFriend.name}</div>` : ''}` +
+            `<div class="mb">${bubble(m)}<i>${m.time}</i></div></div></div>`;
+        }).join('');
+    }).join('');
+
+    $('rbody').scrollTop = $('rbody').scrollHeight;
+
+    /* 사진은 늦게 불러와지니까, 다 뜬 뒤에 다시 맨 아래로 */
+    $('rbody').querySelectorAll('.chat-img').forEach(img =>
+      img.addEventListener('load', () => { $('rbody').scrollTop = $('rbody').scrollHeight; })
+    );
+  }
+
   function openRoom() {
     if (activeFriend && activeFriend.isGroup) {
       const g = activeFriend.group;
@@ -1394,37 +1438,14 @@
       $('rbody').querySelectorAll('.chat-img').forEach(img =>
         img.addEventListener('load', () => { $('rbody').scrollTop = $('rbody').scrollHeight; })
       );
+      evAfterOpen();
       return;
     }
     $('groupNotice').classList.remove('show');
     $('rname').textContent = activeFriend.name;
-    const log = chats[activeFriend.name] || [];
-
-    $('rbody').innerHTML = log.map(d => {
-      let prev = null;
-
-      return `<div class="dsep"><span>${d.date}</span></div>` +
-        d.msgs.map(m => {
-          const first = prev !== m.me;
-          prev = m.me;
-
-          if (m.me) {
-            return `<div class="m me"><i>${m.time}</i>${bubble(m)}</div>`;
-          }
-
-          return `<div class="m">${first ? avatar(activeFriend, 38) : '<div class="sp"></div>'}<div class="mc">` +
-            `${first ? `<div class="mn">${activeFriend.name}</div>` : ''}` +
-            `<div class="mb">${bubble(m)}<i>${m.time}</i></div></div></div>`;
-        }).join('');
-    }).join('');
-
+    renderDirect();
     room.classList.add('show');
-    $('rbody').scrollTop = $('rbody').scrollHeight;
-
-    /* 사진은 늦게 불러와지니까, 다 뜬 뒤에 다시 맨 아래로 */
-    $('rbody').querySelectorAll('.chat-img').forEach(img =>
-      img.addEventListener('load', () => { $('rbody').scrollTop = $('rbody').scrollHeight; })
-    );
+    evAfterOpen();
   }
 
 
@@ -1480,7 +1501,12 @@
     kakao.classList.add('show');
   }
 
-  $('rback').addEventListener('click', () => room.classList.remove('show'));
+  $('rback').addEventListener('click', () => {
+    room.classList.remove('show');
+    clearInput();
+    /* 채팅 목록을 보고 있다면 미리보기·시간 갱신 */
+    if (tab === 'chat') showTab('chat');
+  });
 
   /* 채팅 속 사진을 누르면 크게 보기 / 아무 데나 누르면 닫기 */
   $('rbody').addEventListener('click', e => {
@@ -1528,16 +1554,209 @@
     const dy = e.clientY - ky;
     ky = null;
 
-    if (dy < -40 || Math.abs(dy) < 8) {
+    // 홈 표시줄을 누르거나 위로 밀면 모든 앱을 닫고 아이폰 홈 화면 표시
+    if (dy < -30 || Math.abs(dy) < 25) {
       kakao.classList.remove('show');
       room.classList.remove('show');
-      $('kprofile').classList.remove('show');   // 프로필이 열린 채로 남지 않게
+      $('kprofile').classList.remove('show');
       insta.classList.remove('show');
       $('idm').classList.remove('show');
       $('idmroom').classList.remove('show');
       closeStory();
+      $('viewer').classList.remove('show');
+      clearInput();
+      home.classList.add('show');
     }
   });
+
+
+  /* =====================================================
+     ★★★ 삭제된 메시지 이벤트 (김운학 · 11월 5일) ★★★
+     HTML을 연 지 2분 뒤에:
+       1) 위에 알림이 떠요 (삭제되기 전 원래 메시지가 보여요)
+       2) 채팅방에 들어가면 '삭제된 메시지입니다.' 4개가 떠 있고,
+          입력창에 '삭제된 메시지 뭐야?' 가 타이핑돼요 → ➤ 누르면 전송
+       3) 전송 2초 뒤 김운학 답장 1번째, 또 2초 뒤 2번째
+       4) 입력창에 '오키' 가 타이핑돼요 → ➤ 누르면 전송
+     ★ 테스트용: 주소 뒤에 ?fast 를 붙이면 2분 대신 5초 뒤에 시작해요.
+        예) index.html?fast
+     ===================================================== */
+  const EVENT_DELAY_MS = location.search.includes('fast') ? 5000 : 120000;  // 2분
+  const EV_NAME = '김운학';
+  const EV_REPLY_GAP_MS = 2000;     // 답장 사이 간격 (2초)
+  const EV_TYPE_MS = 130;           // 한 글자 입력 속도
+  const EV_BANNER_STEP_MS = 1800;   // 알림에서 다음 메시지로 바뀌는 간격
+
+  /* 삭제된 메시지 4개 (t = 삭제되기 전 원래 내용) */
+  const evDeleted = [
+    { me: false, t: '누나 혹시 저 불편하세요?', time: '02:32', deleted: true },
+    { me: false, t: '누나 재현이 형이랑 어디 갔어요?', time: '02:32', deleted: true },
+    { me: false, t: '재현이 형이랑 아무것도 아니죠?', time: '02:32', deleted: true },
+    { me: false, t: '저 누나 계속 좋아해도 되죠?', time: '02:32', deleted: true }
+  ];
+  const EV_MY_ASK  = { me: true, t: '삭제된 메시지 뭐야?', time: '08:23' };
+  const EV_REPLIES = [
+    { me: false, t: '아 아무것도 아니예요', time: '08:23' },
+    { me: false, t: '친구한테 보내려다 잘못 보냈어요', time: '08:23' }
+  ];
+  const EV_MY_OK   = { me: true, t: '오키', time: '09:00' };
+
+  /* 0 대기 · 1 삭제 메시지 도착(내 질문 대기) · 2 질문 보냄(답장 오는 중)
+     3 답장 도착(오키 대기) · 4 끝 */
+  let evStage = 0;
+  let evDay = null;
+  let evOpenAfterUnlock = false;
+  let evBannerTimer = null;
+  let evTimers = [];
+
+  const evIsWoonhakRoom = () =>
+    room.classList.contains('show') && activeFriend && !activeFriend.isGroup && activeFriend.name === EV_NAME;
+
+  /* ----- 입력창 타이핑 + 보내기 버튼 ----- */
+  const kfld = $('kfld'), ksend = $('ksend');
+  let typeStartT = null, typeTimer = null, sendAction = null;
+
+  function clearInput() {
+    clearTimeout(typeStartT);
+    clearInterval(typeTimer);
+    kfld.textContent = '';
+    kfld.classList.remove('typing');
+    ksend.classList.remove('ready');
+    sendAction = null;
+  }
+
+  function typeInput(text, action) {
+    clearInput();
+    typeStartT = setTimeout(() => {
+      let i = 0;
+      kfld.classList.add('typing');
+      typeTimer = setInterval(() => {
+        i++;
+        kfld.textContent = text.slice(0, i);
+        if (i >= text.length) {
+          clearInterval(typeTimer);
+          kfld.classList.remove('typing');
+          ksend.classList.add('ready');   // 이제 ➤ 를 누를 수 있어요
+          sendAction = action;
+        }
+      }, EV_TYPE_MS);
+    }, 700);
+  }
+
+  ksend.addEventListener('click', () => {
+    if (!sendAction) return;
+    const act = sendAction;
+    clearInput();
+    act();
+  });
+
+  /* 메시지 하나 추가 후 방이 열려 있으면 다시 그리기 */
+  function evPush(m) {
+    evDay.msgs.push(m);
+    if (evIsWoonhakRoom()) renderDirect();
+    if (kakao.classList.contains('show') && tab === 'chat' && !room.classList.contains('show')) showTab('chat');
+  }
+
+  /* 채팅방이 열릴 때: 지금 단계에 맞는 글자를 입력창에 타이핑 */
+  function evAfterOpen() {
+    clearInput();
+    if (!evIsWoonhakRoom()) return;
+    if (evStage === 1) typeInput(EV_MY_ASK.t, evSendAsk);
+    else if (evStage === 3) typeInput(EV_MY_OK.t, evSendOk);
+  }
+
+  /* 내가 '삭제된 메시지 뭐야?' 전송 → 2초 뒤 답장 하나씩 */
+  function evSendAsk() {
+    evStage = 2;
+    evPush({ ...EV_MY_ASK });
+    EV_REPLIES.forEach((r, i) => {
+      evTimers.push(setTimeout(() => {
+        evPush({ ...r });
+        if (i === EV_REPLIES.length - 1) {
+          evStage = 3;
+          if (evIsWoonhakRoom()) typeInput(EV_MY_OK.t, evSendOk);
+        }
+      }, EV_REPLY_GAP_MS * (i + 1)));
+    });
+  }
+
+  /* 내가 '오키' 전송 */
+  function evSendOk() {
+    evStage = 4;
+    evPush({ ...EV_MY_OK });
+  }
+
+  /* ----- 알림 배너 ----- */
+  function hideBanner() {
+    clearInterval(evBannerTimer);
+    $('banner').classList.remove('show');
+  }
+
+  function drawBanner(text) {
+    $('banner').innerHTML =
+      `<div class="bicon"><img src="kakao.png" alt=""></div>` +
+      `<div class="btxt"><div class="btop"><span>카카오톡</span><span>지금</span></div>` +
+      `<div class="bname">${EV_NAME}</div><div class="bbody">${text}</div></div>`;
+  }
+
+  /* 삭제 전 원래 메시지 4개를 차례로 보여주고 사라져요 */
+  function evShowBanner() {
+    let i = 0;
+    drawBanner(evDeleted[0].t);
+    $('banner').classList.add('show');
+    clearInterval(evBannerTimer);
+    evBannerTimer = setInterval(() => {
+      i++;
+      if (i < evDeleted.length) {
+        drawBanner(evDeleted[i].t);
+      } else {
+        hideBanner();
+      }
+    }, EV_BANNER_STEP_MS);
+  }
+
+  /* 알림 또는 잠금해제 후 → 김운학 채팅방으로 이동 */
+  function goEventRoom() {
+    hideBanner();
+    insta.classList.remove('show');
+    $('idm').classList.remove('show');
+    $('idmroom').classList.remove('show');
+    closeStory();
+    $('viewer').classList.remove('show');
+    $('kprofile').classList.remove('show');
+    home.classList.add('show');
+    openKakao('chat');
+    activeFriend = friendList.find(f => f.name === EV_NAME);
+    openRoom();
+  }
+
+  $('banner').addEventListener('click', () => {
+    if (!home.classList.contains('show')) {
+      /* 아직 잠겨 있으면 암호부터 → 풀리면 자동으로 채팅방 열기 */
+      hideBanner();
+      evOpenAfterUnlock = true;
+      openPass();
+    } else {
+      goEventRoom();
+    }
+  });
+
+  /* ----- 2분 뒤 도착! ----- */
+  function evArrive() {
+    evDay = { date: '11월 5일 수요일', msgs: evDeleted.map(m => ({ ...m })) };
+    chats[EV_NAME].push(evDay);
+    evStage = 1;
+
+    /* 이미 김운학 방이나 채팅 목록을 보고 있으면 바로 갱신 */
+    if (evIsWoonhakRoom()) {
+      renderDirect();
+      evAfterOpen();
+    } else if (kakao.classList.contains('show') && tab === 'chat' && !room.classList.contains('show')) {
+      showTab('chat');
+    }
+    evShowBanner();
+  }
+  setTimeout(evArrive, EVENT_DELAY_MS);
 
 
   /* =====================================================
@@ -1565,8 +1784,8 @@
     { u: 0, time: '3시간', slides: [ { f: 'story_woonhak1.jpg', ph: '스토리 사진 (김운학 1)' }, { f: 'story_woonhak2.jpg', ph: '스토리 사진 (김운학 2)' } ] },
     { u: 1, time: '5시간', slides: [ { f: 'story_myung1.jpg', ph: '스토리 사진 (명재현 1)' } ] },
     { u: 2, time: '8시간', slides: [ { f: 'story_zico1.jpg', ph: '스토리 사진 (우지호 1)' } ] },
-    { u: 3, time: '12시간', slides: [ { f: 'story_campus1.jpg', ph: '스토리 사진 (캠퍼스24 1)' } ] },
-    { u: 4, time: '20시간', slides: [ { f: 'story_lab1.jpg', ph: '스토리 사진 (실습일기 1)' } ] }
+    { u: 3, time: '12시간', slides: [ { f: 'dst.jpg', ph: '스토리 사진 (캠퍼스24 1)' } ] },
+    { u: 4, time: '20시간', slides: [ { f: 'st.jpg', ph: '스토리 사진 (실습일기 1)' } ] }
   ];
 
   /* ----- 피드 (u = igUsers 번호, f = 게시물 사진 파일, likes = 좋아요 수) ----- */
@@ -1597,6 +1816,8 @@
   };
   const igAv = (u, size) => `<div class="round">${avatar(u, size)}</div>`;
   const igPrev = m => m.img ? '사진을 보냈습니다.' : m.t;
+  // DM 데이터가 비어 있어도 인스타그램 화면 전체가 실행되도록 기본 객체를 둡니다.
+  const igDMs = {};
   const igLast = u => {
     const log = igDMs[u.handle] || [];
     if (!log.length) return null;
@@ -1817,8 +2038,44 @@
     insta.classList.add('show');
   }
 
-  /* 홈 표시줄: 누르거나 위로 밀면 홈화면으로 (카카오톡과 같은 방식) */
-  $('ihome').addEventListener('pointerdown', e => { ky = e.clientY; });
+  /* 인스타그램 하단 홈 표시줄을 누르면 아이폰 기본 홈 화면으로 이동 */
+  function returnToPhoneHome() {
+    // 열려 있는 앱과 앱 내부 팝업을 모두 닫습니다.
+    kakao.classList.remove('show');
+    room.classList.remove('show');
+    $('kprofile').classList.remove('show');
+    insta.classList.remove('show');
+    $('idm').classList.remove('show');
+    $('idmroom').classList.remove('show');
+    closeStory();
+    $('viewer').classList.remove('show');
+    clearInput();
+
+    // 잠금/암호 화면이 아니라 앱 아이콘이 있는 홈 화면을 표시합니다.
+    home.classList.add('show');
+  }
+
+  const instaHomeBar = $('ihome');
+  let instaHomeStartY = null;
+
+  instaHomeBar.addEventListener('pointerdown', e => {
+    instaHomeStartY = e.clientY;
+  });
+
+  instaHomeBar.addEventListener('pointerup', e => {
+    if (instaHomeStartY === null) return;
+    const moved = e.clientY - instaHomeStartY;
+    instaHomeStartY = null;
+    // 짧게 누르거나 위로 밀었을 때 홈으로 이동합니다.
+    if (Math.abs(moved) < 25 || moved < -30) returnToPhoneHome();
+  });
+
+  instaHomeBar.addEventListener('pointercancel', () => {
+    instaHomeStartY = null;
+  });
+
+  // 마우스 클릭 등 pointer 이벤트가 아닌 경우도 처리합니다.
+  instaHomeBar.addEventListener('click', returnToPhoneHome);
 </script>
 </body>
 </html>
