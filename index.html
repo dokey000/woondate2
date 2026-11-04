@@ -117,6 +117,7 @@
   .group-notice .notice-arrow { color:#999; }
   .group-avatar { flex:none; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:1px; overflow:hidden; border-radius:36%; background:#ddd; }
   .group-avatar img { width:100%; height:100%; object-fit:cover; min-width:0; min-height:0; }
+  .group-avatar.n3 img:first-child { grid-column: 1 / span 2; }
   .rhead { flex: none; height: 96px; padding: 50px 14px 0; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; }
   .rhead .back { padding: 0 6px 4px; font-size: 32px; font-weight: 300; line-height: 1; cursor: pointer; }
   .rbody { flex: 1; overflow-y: auto; padding: 6px 12px 12px; scrollbar-width: none; }
@@ -131,6 +132,9 @@
   .m.me .bub { background: #fee500; }
   .bub.img-only { padding: 0; background: none !important; }
   .chat-img { display: block; max-width: 200px; max-height: 260px; border-radius: 14px; object-fit: cover; cursor: zoom-in; }
+  .bub.deleted { color: #888; }
+  .del-view { margin-top: 7px; padding-top: 7px; border-top: 1px solid #eee; font-size: 12px; color: #4a7cf7; cursor: pointer; }
+  .del-orig { margin-top: 7px; padding-top: 7px; border-top: 1px solid #eee; color: #111; }
 
   /* ---------- 사진 크게 보기 ---------- */
   #viewer {
@@ -813,13 +817,87 @@
       },
     ]
   };
-  const groupLastMessage = () => {
-    const lastDay = groupChat.days[groupChat.days.length - 1];
+  /* 기존 단톡방도 새 구조(members)로 쓰도록 연결 */
+  groupChat.members = groupMembers;
+
+  /* ===== 새 단톡방: 김운학 / 나 / 명재현 / 우지호(퇴장) =====
+     members = 지금 방에 남아 있는 사람 (우지호는 나갔으니 빼서 3명)
+     { system: '...' } = 가운데 회색 안내 문구 (나갔습니다 등) */
+  const groupChat2 = {
+    name: '방탈출 🚪',
+    notice: '',
+    members: [
+      { name: '문하나', f: me.f, ph: me.ph },
+      friendList.find(x => x.name === '김운학'),
+      friendList.find(x => x.name === '명재현')
+    ],
+    days: [
+      {
+        date: '10월 31일 토요일',
+        msgs: [
+          { name: '명재현', t: '.', time: '14:02' },
+          { name: '문하나', t: '?', time: '14:05', me: true },
+          { name: '명재현', t: '안녕하십니까? 여러분 12월 저의 생일을 미리 축하하기 위해 제 마음대로 방탈출을 하러 가자고 제안합니다.', time: '14:06' },
+          { name: '명재현', t: '철저히 내맘임.', time: '14:06' },
+          { name: '김운학', t: '우와!!!!! 재밌겠다!!!', time: '14:09' },
+          { name: '우지호', t: '나 졸업 심사 있어 너희끼리 가', time: '14:09' },
+          { name: '명재현', t: 'ㅠㅜ 하루 논다고 졸업 유예되지 않잖아요 ㅜ', time: '14:12' },
+          { name: '문하나', t: '선배 지금 20학번인데 과방 지박령되셨잖아', time: '14:13', me: true },
+          { name: '우지호', t: '나 19학번이야', time: '14:13' },
+          { name: '문하나', t: '어머', time: '14:13', me: true },
+          { name: '김운학', t: '선배님 아쉽습니다 다음에 같이 가요', time: '14:13' },
+          { name: '우지호', t: '어 그래 학교 좀 탈출하자', time: '14:16' },
+
+          { name: '명재현', t: '형 연락 기다릴게요', time: '14:18' },
+          { name: '우지호', t: '재밌게 놀고', time: '14:20' },
+          { system: '우지호님이 나갔습니다.', time: '14:20' },
+          { name: '문하나', t: '어떤 테마 갈건데?', time: '14:21', me: true },
+          { name: '명재현', t: '공포만 아니면 됨', time: '14:23' },
+          { name: '김운학', t: '제가 예약할게요!', time: '14:23' },
+          { name: '김운학', t: '내일 4시면 될까요?', time: '14:26' },
+          { name: '명재현', t: 'ㅇㅇ', time: '14:26' },
+          { name: '문하나', t: '오키', time: '14:28', me: true },
+          { name: '김운학', img: 'talchul.png', time: '14:35' },
+          { name: '김운학', t: '예약완료입니다~ 힌트 무제한이랍니다!!', time: '14:35' },
+          { name: '김운학', t: '셜록홈즈 좀 읽다가 자겠습니다 🤓', time: '14:35' },
+          { name: '문하나', t: 'ㅋㅋㅋㅋㅋㅋㅋ', time: '14:37', me: true },
+          { name: '명재현', t: '그냥 바로 자', time: '14:40' },
+          { name: '김운학', t: '넵 ㅎㅎ', time: '14:43' },
+
+
+        ]
+      },
+      {
+        date: '11월 4일 화요일',
+        msgs: [
+          { name: '김운학', t: '오늘 방탈출 너무 재밌었습니다!!!', time: '17:53' },
+          { name: '명재현', t: '아니 공포 아니라며', time: '17:53' },
+          { name: '문하나', t: 'ㅋㅋㅋㅋㅋ 아까 명재현 땅으로 꺼지는 줄 ㅋㅋㅋ', time: '17:55', me: true },
+          { name: '명재현', t: '김운학 너는 내가 두고 보자 ', time: '17:58' },
+          { name: '김운학', t: 'ㅠㅜㅠㅜㅠ 저도 공포인줄 몰랐습니다 ㅜㅡㅜ', time: '18:00' },
+          { name: '문하나', t: 'ㅋㅋㅋㅋㅋㅋㅋ', time: '18:00', me: true },
+          { name: '김운학', t: '한 번 봐주십쇼 ㅠㅠㅠㅜ', time: '18:01' },
+          { name: '명재현', t: '내가 지켜볼거야 앞으로', time: '18:01' },
+          { name: '김운학', t: '넵 🫡', time: '18:01' },
+        ]
+      },
+   ]
+};
+
+  /* 단톡방 목록 (채팅 탭에 이 순서대로 김운학 바로 아래에 나와요) */
+  const groupChats = [groupChat2, groupChat];
+
+  /* 마지막 메시지 (안내 문구도 포함) */
+  const groupLastMessage = g => {
+    const lastDay = g.days[g.days.length - 1];
     return lastDay.msgs[lastDay.msgs.length - 1];
   };
-  const groupAvatar = size =>
-    `<div class="group-avatar" style="width:${size}px;height:${size}px">` +
-    groupMembers.map(p => `<img src="${p.f}" alt="" onerror="this.style.background='#dfe3e8';this.style.visibility='hidden'">`).join('') +
+  /* 채팅 목록 미리보기: 안내 문구 > 사진 > 글 */
+  const groupPreview = m => m.system || (m.img ? '사진' : m.t);
+
+  const groupAvatar = (g, size) =>
+    `<div class="group-avatar${g.members.length === 3 ? ' n3' : ''}" style="width:${size}px;height:${size}px">` +
+    g.members.map(p => `<img src="${p.f}" alt="" onerror="this.style.background='#dfe3e8';this.style.visibility='hidden'">`).join('') +
     `</div>`;
 
   /* ===== 채팅방별 대화 내용 =====
@@ -1061,6 +1139,62 @@
           { me: true, t: 'ㅋㅋㅋ 너 하는 거 봐서 ㅋㅋ', time: '17:32' }
         ]
       },
+      {
+        date: '10월 22일 목요일',
+        msgs: [
+          { me: false, t: '누나 오늘 언제 마쳐요?', time: '09:28' },
+          { me: true, t: '오늘 공강없이 7연강ㅜ', time: '09:35' },
+          { me: true, t: '3시 30분 정도에 마칠 듯', time: '09:35' },
+          { me: false, t: '11시에 F동 201에서 수업듣죠?', time: '10:00' },
+          { me: true, t: '맞음 왜??', time: '10:00' },
+          { me: false, t: '비밀', time: '10:03' },
+          { me: true, t: '??? 뭔데', time: '10:03' },
+          { me: false, t: 'ㅋㅋㅋㅋㅋㅋㅋㅋ', time: '10:03' },
+          { me: true, img: 'tteok.jpeg', time: '11:03' },
+          { me: true, t: '고마워 잘 먹을게ㅔ', time: '11:03' },
+          { me: false, t: '멋있죠??', time: '11:03' },
+          { me: true, t: 'ㅋㅋ 조금??', time: '11:03' },
+          { me: false, t: '조금? ㅠㅜㅠ', time: '11:03' },
+          { me: true, t: 'ㅋㅋㅋㅋㅋㅋ', time: '11:03' },
+          { me: true, t: '아니아니 많이ㅋㅋㅋ', time: '11:03' },
+        ]
+      },
+ {
+        date: '11월 1일 일요일',
+        msgs: [
+          { me: false, t: '누나 잘 들어갔요?', time: '23:42' },
+          { me: true, t: '어~ 덕분에', time: '23:44' },
+          { me: true, t: '가방 무거웠을텐데 들어줘서 고맙네', time: '23:44' },
+          { me: false, t: '에이', time: '23:45' },
+          { me: false, t: '가위바위보 제가 졌잖아요~', time: '23:45' },
+          { me: true, t: '춥다 얼른 들어가', time: '23:45' },
+          { me: false, t: '누나 창문 한번만 열어봐요', time: '23:45' },
+          { me: true, t: '뭐야???', time: '23:45' },
+          { me: true, t: '?? 야 감기 걸려 빨리 들어가', time: '23:45' },
+          { me: false, t: 'ㅋㅋㅋㅋㅋㅋㅋㅋ', time: '23:46' },
+          { me: false, t: '잘자요', time: '23:46' },
+          { me: true, t: '집 조심히 들어가~', time: '23:46' },
+          { me: false, t: '네ㅔ굿밤😴', time: '23:46' },
+        ]
+      },
+ {
+        date: '11월 4일 화요일',
+        msgs: [
+          { me: false, t: '누나! 같이 저녁 먹고 싶었는데 .. ', time: '18:01' },
+          { me: true, t: '바쁜 일이 있어서 ㅠㅠ', time: '18:01' },
+          { me: true, t: '알겠슴다! 조심히 들어가세요!', time: '18:01' },
+        ]
+      },
+ {
+        date: '11월 5일 수요일',
+        msgs: [
+          { me: false, t: '누나 혹시 저 불편하세요?', time: '02:32', deleted: true },
+          { me: false, t: '누나 재현이 형이랑 어디 갔어요?', time: '02:32', deleted: true },
+          { me: false, t: '재현이 형이랑 아무것도 아니죠?', time: '02:32', deleted: true },
+          { me: false, t: '저 누나 계속 좋아해도 되죠?', time: '02:32', deleted: true },
+        ]
+      },
+
     ],
 
     '명재현': [
@@ -1098,6 +1232,28 @@
           { me: false, t: '잘 해봐', time: '13:45' },
           { me: true, t: '하 .. 일단 ㅇㅋ', time: '13:50' }
         ]
+      },
+{
+        date: '11월 2일 월요일',
+        msgs: [
+          { me: true, t: '님 학이 생일 어쩔거 ', time: '17:12' },
+          { me: false, t: '학이 ~~~?? 하기~~~???? 너희 진짜 뭐하냐', time: '17:20' },
+          { me: true, t: '뭐가;;; 서프라이즈 해주고 싶은데', time: '17:20' },
+          { me: false, t: '저 커플 사이에 안낍니다~~~', time: '17:20' },
+          { me: true, t: '쫌^^ 협조합시다', time: '17:20' },
+          { me: false, t: '그래서 계획은 있고?', time: '17:21' },
+          { me: true, t: '아니 없는데', time: '17:21' },
+          { me: false, t: '?', time: '17:21' },
+          { me: true, t: '없어서 지금 토론 신청하잖아', time: '17:23' },
+          { me: false, t: '황당하기 짝이 없네요', time: '17:23' },
+          { me: true, t: '일단 방탈출하고 카페가서 디테일 ㄱㄱ', time: '17:23' },
+          { me: false, t: '저 바빠요;', time: '17:23' },
+          { me: true, t: '어디가는데', time: '17:27' },
+          { me: false, t: '풋살 가야함', time: '17:30' },
+          { me: true, t: '이중약속 최악', time: '17:30' },
+          { me: true, t: '우우 👎🏻👎🏻', time: '17:30' },
+          { me: false, t: '하.. 일단 ㅇㅋ 가자', time: '17:30' },
+        ]
       }
 
     ],
@@ -1120,13 +1276,16 @@
     `<div class="av" style="width:${size}px;height:${size}px"><span>${p.ph}</span>` +
     `<img src="${p.f}" alt="" onload="this.previousSibling.remove()" onerror="this.remove()"></div>`;
 
-  /* 사진이면 사진 말풍선, 아니면 글 말풍선 */
-  const bubble = m => m.img
-    ? `<div class="bub img-only"><img class="chat-img" src="${m.img}" alt=""></div>`
-    : `<div class="bub">${m.t}</div>`;
+  const bubble = m => m.deleted
+    ? `<div class="bub deleted"><div>삭제된 메시지입니다.</div>` +
+      `<div class="del-view">삭제되기 전 내용보기</div>` +
+      `<div class="del-orig" style="display:none">${m.img ? `<img class="chat-img" src="${m.img}" alt="">` : m.t}</div></div>`
+    : m.img
+      ? `<div class="bub img-only"><img class="chat-img" src="${m.img}" alt=""></div>`
+      : `<div class="bub">${m.t}</div>`;
 
-  /* 채팅 목록·알림에 보여줄 미리보기 (사진이면 '사진') */
-  const preview = m => m.img ? '사진' : m.t;
+  /* 채팅 목록·알림에 보여줄 미리보기 (삭제된 메시지 > 사진 > 글) */
+  const preview = m => m.deleted ? '삭제된 메시지입니다.' : (m.img ? '사진' : m.t);
 
   /* 해당 친구와의 마지막 메시지 (대화가 없으면 null) */
   const lastMsg = f => {
@@ -1176,13 +1335,14 @@
           `<div class="srow click crow" data-friend-index="${i}">${avatar(f, 52)}` +
           `<div class="ct"><b>${f.name}</b><div class="cl">${preview(m)}</div></div><div class="tm">${m.time}</div></div>`
         );
-      const groupLast = groupLastMessage();
-      const groupRow =
-        `<div class="srow click crow group-row" data-group-chat="1">${groupAvatar(52)}` +
-        `<div class="ct"><b>${groupChat.name} <span style="font-weight:400;color:#999">4</span></b><div class="cl">${groupLast.t}</div></div><div class="tm">${groupLast.time}</div></div>`;
+      const groupRows = groupChats.map((g, gi) => {
+        const last = groupLastMessage(g);
+        return `<div class="srow click crow group-row" data-group-index="${gi}">${groupAvatar(g, 52)}` +
+          `<div class="ct"><b>${g.name} <span style="font-weight:400;color:#999">${g.members.length}</span></b><div class="cl">${groupPreview(last)}</div></div><div class="tm">${last.time}</div></div>`;
+      });
       const woonhakRowIndex = friendList.findIndex(f => f.name === '김운학');
       const visibleWoonhakIndex = chatRows.findIndex(row => row.includes(`data-friend-index="${woonhakRowIndex}"`));
-      chatRows.splice(visibleWoonhakIndex >= 0 ? visibleWoonhakIndex + 1 : 0, 0, groupRow);
+      chatRows.splice(visibleWoonhakIndex >= 0 ? visibleWoonhakIndex + 1 : 0, 0, ...groupRows);
       $('kmain').innerHTML = chatRows.join('');
     }
 
@@ -1193,28 +1353,36 @@
 
   function openRoom() {
     if (activeFriend && activeFriend.isGroup) {
-      $('rname').textContent = `${groupChat.name} ${groupMembers.length}`;
-      $('groupNoticeText').textContent = groupChat.notice;
-      $('groupNotice').classList.add('show');
-      $('rbody').innerHTML = groupChat.days.map(day =>
+      const g = activeFriend.group;
+      $('rname').textContent = `${g.name} ${g.members.length}`;
+      if (g.notice) {
+        $('groupNoticeText').textContent = g.notice;
+        $('groupNotice').classList.add('show');
+      } else {
+        $('groupNotice').classList.remove('show');
+      }
+      $('rbody').innerHTML = g.days.map(day =>
         `<div class="dsep"><span>${day.date}</span></div>` +
         day.msgs.map((m, i) => {
-          const p = groupMembers.find(x => x.name === m.name) || groupMembers[0];
+          /* 안내 문구 (나갔습니다 등) */
+          if (m.system) return `<div class="dsep"><span>${m.system}</span></div>`;
+
+          const p = friendList.find(x => x.name === m.name) || me;
           const prev = i > 0 ? day.msgs[i - 1] : null;
-          const first = !prev || prev.name !== m.name;
-          const bubble = m.img
-            ? `<div class="bub img-only"><img class="chat-img" src="${m.img}" alt=""></div>`
-            : `<div class="bub">${m.t}</div>`;
+          const first = !prev || prev.system || prev.name !== m.name;
 
           if (m.me) {
-            return `<div class="m me"><i>${m.time}</i>${bubble}</div>`;
+            return `<div class="m me"><i>${m.time}</i>${bubble(m)}</div>`;
           }
 
-          return `<div class="m">${first ? avatar(p, 38) : '<div class="sp"></div>'}<div class="mc">${first ? `<div class="mn">${m.name}</div>` : ''}<div class="mb">${bubble}<i>${m.time}</i></div></div></div>`;
+          return `<div class="m">${first ? avatar(p, 38) : '<div class="sp"></div>'}<div class="mc">${first ? `<div class="mn">${m.name}</div>` : ''}<div class="mb">${bubble(m)}<i>${m.time}</i></div></div></div>`;
         }).join('')
       ).join('');
       room.classList.add('show');
       $('rbody').scrollTop = $('rbody').scrollHeight;
+      $('rbody').querySelectorAll('.chat-img').forEach(img =>
+        img.addEventListener('load', () => { $('rbody').scrollTop = $('rbody').scrollHeight; })
+      );
       return;
     }
     $('groupNotice').classList.remove('show');
@@ -1281,7 +1449,8 @@
 
     const groupRow = e.target.closest('.group-row');
     if (groupRow) {
-      activeFriend = { name: groupChat.name, isGroup: true };
+      const g = groupChats[Number(groupRow.dataset.groupIndex)];
+      activeFriend = { name: g.name, isGroup: true, group: g };
       openRoom();
       return;
     }
@@ -1309,6 +1478,18 @@
 
   /* 채팅 속 사진을 누르면 크게 보기 / 아무 데나 누르면 닫기 */
   $('rbody').addEventListener('click', e => {
+    /* 삭제되기 전 내용보기: 누를 때마다 펼치기/접기 */
+    const v = e.target.closest('.del-view');
+    if (v) {
+      const orig = v.nextElementSibling;
+      const open = orig.style.display === 'none';
+      orig.style.display = open ? 'block' : 'none';
+      v.textContent = open ? '내용 접기' : '삭제되기 전 내용보기';
+      const rb = $('rbody');
+      if (open) rb.scrollTop = rb.scrollHeight;
+      return;
+    }
+
     const img = e.target.closest('.chat-img');
     if (!img) return;
     $('viewerImg').src = img.src;
