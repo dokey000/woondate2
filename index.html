@@ -147,7 +147,14 @@
   }
   #viewer.show { opacity: 1; pointer-events: auto; }
   #viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .viewer-x { position: absolute; top: 56px; right: 20px; color: #fff; font-size: 26px; line-height: 1; pointer-events: none; }
+  .viewer-x { position: absolute; top: 56px; right: 20px; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; z-index: 2; }
+  .viewer-date { position:absolute; top:58px; left:18px; right:58px; color:#fff; font-size:15px; font-weight:600; line-height:1.35; text-shadow:0 1px 5px #000; display:none; }
+  .viewer-date small { display:block; margin-top:3px; font-size:12px; font-weight:400; opacity:.8; }
+  .viewer-nav { position:absolute; top:50%; transform:translateY(-50%); width:42px; height:58px; border:0; border-radius:22px; background:rgba(0,0,0,.25); color:#fff; font-size:30px; cursor:pointer; z-index:2; display:none; }
+  .viewer-nav.prev { left:8px; }
+  .viewer-nav.next { right:8px; }
+  #viewer.photo-mode .viewer-date, #viewer.photo-mode .viewer-nav { display:block; }
+  #viewer.photo-mode { touch-action:pan-y; }
   /* 사진을 크게 볼 때는 상태 표시줄을 흰색으로 */
   .phone:has(#viewer.show) .status-bar { color: #fff; }
   .m i { font-style: normal; font-size: 10px; color: #4b5b6a; white-space: nowrap; }
@@ -299,6 +306,18 @@
 }
 
 
+  /* ================= 사진 앱 (갤러리) ================= */
+  #photos { z-index: 16; opacity: 0; pointer-events: none; transform: scale(.92); background: #fff; color: #111; display: flex; flex-direction: column; }
+  #photos.show { opacity: 1; pointer-events: auto; transform: none; }
+  .phhead { flex: none; height: 96px; padding: 50px 18px 0; display: flex; align-items: center; justify-content: space-between; font-size: 22px; font-weight: 700; }
+  .phhead small { font-size: 13px; font-weight: 400; color: #888; }
+  .phgrid { flex: 1; overflow-y: auto; padding-bottom: 34px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; align-content: start; scrollbar-width: none; }
+  .phgrid::-webkit-scrollbar { display: none; }
+  .pcell { aspect-ratio: 1 / 1; background: #eee; overflow: hidden; cursor: pointer; }
+  .pcell img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .phempty { grid-column: 1 / -1; padding: 60px 20px; text-align: center; font-size: 14px; color: #888; }
+
+
   /* ================= 인스타그램 ================= */
   #insta { z-index: 16; opacity: 0; pointer-events: none; transform: scale(.92); background: #fff; color: #111; display: flex; flex-direction: column; }
   #insta.show { opacity: 1; pointer-events: auto; transform: none; }
@@ -329,6 +348,9 @@
   .story.seen .ring { background: #dbdbdb; }
   .story .ring .in { width: 100%; height: 100%; border-radius: 50%; background: #fff; padding: 2px; }
   .story.mine .ring { background: none; padding: 0; }
+  /* 내 스토리가 있을 때만 색깔 테두리 (한 번 보면 회색) */
+  .story.mine.act .ring { padding: 3px; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); }
+  .story.mine.act.seen .ring { background: #dbdbdb; }
   .story .plus { position: absolute; right: -1px; bottom: -1px; width: 22px; height: 22px; border-radius: 50%; background: #3797f0; border: 2px solid #fff; color: #fff; font-size: 16px; line-height: 17px; text-align: center; font-weight: 700; }
   .story .nm { max-width: 68px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -400,22 +422,106 @@
   #story { position: absolute; inset: 0; z-index: 35; background: #000; color: #fff; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   #story.show { opacity: 1; pointer-events: auto; }
   .simg { position: absolute; inset: 0; background: #2a2a2a; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 14px; }
-  .simg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .simg img, .simg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .simg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.45), transparent 22%, transparent 80%, rgba(0,0,0,.35)); }
   .sbars { position: absolute; top: 54px; left: 10px; right: 10px; z-index: 2; display: flex; gap: 4px; }
   .sbars span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.35); overflow: hidden; }
   .sbars b { display: block; height: 100%; width: 0; background: #fff; }
   .sbars b.done { width: 100%; }
-  .shead { position: absolute; top: 68px; left: 12px; right: 52px; z-index: 2; display: flex; align-items: center; gap: 10px; font-size: 14px; }
-  .shead .tm { opacity: .7; }
+  .shead { position: absolute; top: 66px; left: 12px; right: 52px; z-index: 2; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .sinfo { min-width: 0; line-height: 1.25; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .sline { display: flex; align-items: baseline; gap: 8px; }
+  .shead .tm { font-size: 13px; opacity: .7; }
+  /* 스토리에 태그된 사람: 이름 아래에 작게 표시 */
+  .stag { margin-top: 1px; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stag svg { flex: none; width: 12px; height: 12px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .sx { position: absolute; top: 70px; right: 12px; z-index: 3; padding: 2px 6px; font-size: 24px; line-height: 1; cursor: pointer; }
   .szone { position: absolute; top: 112px; bottom: 90px; z-index: 1; cursor: pointer; }
   .szl { left: 0; width: 30%; }
   .szr { right: 0; width: 70%; }
   .sreply { position: absolute; left: 14px; right: 14px; bottom: 30px; height: 44px; z-index: 2; border-radius: 22px; border: 1px solid rgba(255,255,255,.6); display: flex; align-items: center; padding: 0 16px; color: rgba(255,255,255,.8); font-size: 14px; pointer-events: none; }
 
+  /* ================= 인스타그램 프로필 / 게시물 보기 ================= */
+  #iprof { z-index: 2; bottom: 80px; }
+  #ipost { z-index: 3; bottom: 80px; }
+  .post .phead[data-h] { cursor: pointer; }
+  #shead { cursor: pointer; }
+  .itab.on .round .av { box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #111; }
+
+  .pfhead { flex: none; height: 96px; padding: 50px 16px 0; display: flex; align-items: center; gap: 10px; }
+  .pfhead .back { padding: 0 6px 4px 0; font-size: 32px; font-weight: 300; line-height: 1; cursor: pointer; }
+  .pfhead .hd { display: flex; align-items: center; gap: 4px; font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+  .pfhead .hd .isvg { width: 16px; height: 16px; stroke-width: 2.4; }
+  .pfhead .icons { margin-left: auto; display: flex; align-items: center; gap: 20px; }
+  .pfhead .mdot { font-size: 22px; line-height: 1; }
+  .pdt { flex: 1; margin-right: 30px; text-align: center; line-height: 1.2; }
+  .pdt small { display: block; font-size: 12px; color: #8e8e8e; }
+  .pdt b { font-size: 16px; font-weight: 700; }
+  .pfbody { position: relative; flex: 1; overflow-y: auto; scrollbar-width: none; }
+  .pfbody::-webkit-scrollbar { display: none; }
+
+  .pftop { display: flex; align-items: center; gap: 22px; padding: 4px 16px 0; }
+  .pavring { position: relative; flex: none; width: 92px; height: 92px; padding: 3px; border-radius: 50%; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); }
+  .pavring[data-si] { cursor: pointer; }
+  .pavring.seen { background: #dbdbdb; }
+  .pavring.none { padding: 1px; background: #dbdbdb; }
+  .pavring .in { width: 100%; height: 100%; padding: 3px; border-radius: 50%; background: #fff; }
+  .pavring.none .in { padding: 5px; }
+  .pavring .plus { position: absolute; right: 0; bottom: 2px; width: 24px; height: 24px; border-radius: 50%; background: #0095f6; border: 2.5px solid #fff; color: #fff; font-size: 17px; line-height: 19px; text-align: center; font-weight: 700; }
+  .pfstats { flex: 1; display: flex; justify-content: space-around; text-align: center; }
+  .pfstats b { display: block; font-size: 17px; font-weight: 700; }
+  .pfstats span { font-size: 13px; }
+  .pfbio { padding: 12px 16px 0; font-size: 14px; line-height: 1.4; }
+  .pfbio .nm { font-weight: 700; }
+  .pfbio .bio { white-space: pre-wrap; word-break: break-word; }
+  .pfbio .lnk { color: #00376b; font-weight: 600; }
+  .pfbtns { display: flex; gap: 6px; padding: 14px 16px 0; }
+  .pfbtn { flex: 1; height: 32px; border-radius: 8px; background: #efefef; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+  .pfbtn.blue { background: #0095f6; color: #fff; }
+  .pfbtn.sq { flex: none; width: 34px; }
+  .pfbtn .isvg { width: 16px; height: 16px; stroke-width: 2.2; }
+  .pfbtn.sq .isvg { width: 18px; height: 18px; }
+
+  .hls { display: flex; gap: 16px; padding: 16px 16px 14px; overflow-x: auto; scrollbar-width: none; }
+  .hls::-webkit-scrollbar { display: none; }
+  .hl { flex: none; width: 66px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; }
+  .hl .cv { width: 66px; height: 66px; padding: 3px; border-radius: 50%; border: 1px solid #dbdbdb; }
+  .hl .im { position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: #efefef; display: flex; align-items: center; justify-content: center; color: #999; font-size: 8px; line-height: 1.15; text-align: center; word-break: break-all; padding: 3px; }
+  .hl .im img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hl.new .im { background: #fff; }
+  .hl .nm { max-width: 66px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .pftabs { position: sticky; top: 0; z-index: 2; display: flex; background: #fff; border-top: 1px solid #dbdbdb; }
+  .pftab { flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid transparent; cursor: pointer; }
+  .pftab .isvg { width: 24px; height: 24px; stroke: #8e8e8e; }
+  .pftab.on { border-bottom-color: #111; }
+  .pftab.on .isvg { stroke: #111; }
+  .pfgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; }
+  .gcell { position: relative; aspect-ratio: var(--ratio, 3 / 4); background: #efefef; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; color: #999; font-size: 10px; line-height: 1.2; text-align: center; word-break: break-all; }
+  .gcell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .gcell .ov { position: absolute; top: 7px; z-index: 1; display: flex; filter: drop-shadow(0 1px 3px rgba(0,0,0,.45)); }
+  .gcell .ov.r { right: 7px; }
+  .gcell .ov.l { left: 7px; }
+  .gcell .ov .isvg { width: 18px; height: 18px; fill: #fff; stroke: none; }
+  .gcell .vw { position: absolute; left: 7px; bottom: 6px; z-index: 1; display: flex; align-items: center; gap: 3px; color: #fff; font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+  .gcell .vw .isvg { width: 14px; height: 14px; fill: #fff; stroke: none; }
+  .pfempty { padding: 56px 20px; text-align: center; font-size: 15px; font-weight: 600; color: #8e8e8e; }
+
+  /* 여러 장 게시물 (옆으로 넘기기) */
+  .car { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; background: #efefef; }
+  .cts { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .cts::-webkit-scrollbar { display: none; }
+  .cs { position: relative; flex: none; width: 100%; height: 100%; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; color: #888; font-size: 13px; }
+  .cs img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .car .cnt { position: absolute; top: 12px; right: 12px; padding: 3px 9px; border-radius: 12px; background: rgba(0,0,0,.65); color: #fff; font-size: 12px; font-weight: 600; pointer-events: none; }
+  .pact { position: relative; }
+  .cdots { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 4px; pointer-events: none; }
+  .cdots i { width: 6px; height: 6px; border-radius: 50%; background: #c7c7c7; }
+  .cdots i.on { background: #0095f6; }
+
   /* ===== 상태 표시줄 글자색 (맨 아래에 둬야 앞쪽 규칙을 덮어써요) ===== */
   .phone:has(#insta.show) .status-bar { color: #111; }
+  .phone:has(#photos.show) .status-bar { color: #111; }
   .phone:has(#story.show) .status-bar { color: #fff; }
   .phone:has(#viewer.show) .status-bar { color: #fff; }
 </style>
@@ -476,7 +582,10 @@
     <!-- 사진 크게 보기 (채팅 속 사진을 누르면 열리고, 아무 데나 누르면 닫혀요) -->
     <div id="viewer">
       <img id="viewerImg" alt="">
-      <span class="viewer-x">✕</span>
+      <div class="viewer-date" id="viewerDate"></div>
+      <button class="viewer-nav prev" id="photoPrev" aria-label="이전 사진">‹</button>
+      <button class="viewer-nav next" id="photoNext" aria-label="다음 사진">›</button>
+      <span class="viewer-x" id="viewerClose">✕</span>
     </div>
 
     <!-- 카카오톡 -->
@@ -524,6 +633,13 @@
       <div class="khome" id="khome"></div>
     </div>
 
+    <!-- 사진 앱 (갤러리) -->
+    <div class="layer" id="photos">
+      <div class="phhead"><span>사진</span><small id="phcount"></small></div>
+      <div class="phgrid" id="phgrid"></div>
+      <div class="khome" id="phome"></div>
+    </div>
+
     <!-- 인스타그램 -->
     <div class="layer" id="insta">
       <div class="ihead">
@@ -559,6 +675,10 @@
         <div class="dbody" id="dmbody"></div>
         <div class="dmin"><span class="camb" id="dmcam"></span><div class="fld">메시지 보내기...</div></div>
       </div>
+
+      <!-- 프로필 / 게시물 보기 -->
+      <div class="pane" id="iprof"></div>
+      <div class="pane" id="ipost"></div>
 
       <div class="khome" id="ihome"></div>
     </div>
@@ -600,7 +720,7 @@
   const apps = [
     { id: 'kakao', n: '카카오톡', p: '카카오톡1', f: 'kakao.png' },
     { id: 'insta', n: 'instagram', p: '인스타그램1', f: 'instagram.webp' },
-    { n: '사진', p: '사진1', f: 'images.webp' },
+    { id: 'photos', n: '사진', p: '사진1', f: 'images.webp' },
     { n: '블로그', p: '블로그', f: 'blog.png' }
   ];
 
@@ -726,8 +846,11 @@
       pass.style.opacity = 0;
       pass.classList.remove('active');
       home.classList.add('show');
-      /* 알림을 눌러서 잠금해제한 경우 → 바로 김운학 채팅방으로 */
-      if (evOpenAfterUnlock) {
+      /* 잠금화면에서 알림을 눌렀다면 해당 알림의 앱으로 이동 */
+      if (evOpenStoryAfterUnlock) {
+        evOpenStoryAfterUnlock = false;
+        setTimeout(openMyungStoryFromBanner, 350);
+      } else if (evOpenAfterUnlock) {
         evOpenAfterUnlock = false;
         setTimeout(goEventRoom, 350);
       }
@@ -1017,7 +1140,7 @@
           { me: false, t: '잘할 수 있을 거라고 해주셨어요', time: '16:56' },
           { me: true, t: 'ㅋㅋㅋ이번 주 밥 사달라고 하는거야?', time: '16:58' },
           { me: false, t: '아님다!!!! 저 쿠폰 다 모아서 에이드 공짜에요', time: '17:02' },
-          { me: false, t: '파스타 제가 쏘겠습니다😊', time: '17:02' }
+          { me: false, t: '돈까스 제가 쏘겠습니다😊', time: '17:02' }
         ]
       },
       {
@@ -1213,7 +1336,7 @@
         msgs: [
           { me: false, t: '누나! 같이 저녁 먹고 싶었는데 .. ', time: '18:01' },
           { me: true, t: '바쁜 일이 있어서 ㅠㅠ', time: '18:05' },
-          { me: false, t: '알겠슴다! 조심히 들어가세요!', time: '18:05' },
+          { me: false, t: '네... 조심히 들어가세요ㅜㅡㅜ', time: '18:05' },
         ]
       }
       /* 11월 5일 수요일 대화는 2분 뒤 이벤트로 추가돼요 (아래 코드 참고) */
@@ -1321,6 +1444,7 @@
   };
 
   const kakao = $('kakao'), room = $('kroom');
+  const photos = $('photos');
   let tab = 'friends';
   let activeFriend = friend;
   let selectedProfile = null;
@@ -1365,9 +1489,9 @@
         return `<div class="srow click crow group-row" data-group-index="${gi}">${groupAvatar(g, 52)}` +
           `<div class="ct"><b>${g.name} <span style="font-weight:400;color:#999">${g.members.length}</span></b><div class="cl">${groupPreview(last)}</div></div><div class="tm">${last.time}</div></div>`;
       });
-      const woonhakRowIndex = friendList.findIndex(f => f.name === '김운학');
-      const visibleWoonhakIndex = chatRows.findIndex(row => row.includes(`data-friend-index="${woonhakRowIndex}"`));
-      chatRows.splice(visibleWoonhakIndex >= 0 ? visibleWoonhakIndex + 1 : 0, 0, ...groupRows);
+const myungRowIndex = friendList.findIndex(f => f.name === '명재현');
+const visibleMyungIndex = chatRows.findIndex(row => row.includes(`data-friend-index="${myungRowIndex}"`));
+chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupRows);
       $('kmain').innerHTML = chatRows.join('');
     }
 
@@ -1524,10 +1648,20 @@
 
     const img = e.target.closest('.chat-img');
     if (!img) return;
+    $('viewer').classList.remove('photo-mode');
+    $('viewerDate').innerHTML = '';
     $('viewerImg').src = img.src;
     $('viewer').classList.add('show');
   });
-  $('viewer').addEventListener('click', () => $('viewer').classList.remove('show'));
+  $('viewerClose').addEventListener('click', e => { e.stopPropagation(); closeViewer(); });
+  $('viewer').addEventListener('click', e => {
+    if (e.target.closest('.viewer-nav')) return;
+    if (e.target === $('viewer') || e.target === $('viewerClose')) closeViewer();
+  });
+
+  function closeViewer() {
+    $('viewer').classList.remove('show', 'photo-mode');
+  }
 
   $('ktabs').addEventListener('click', e => {
     const t = e.target.closest('.ktab.act');
@@ -1539,6 +1673,7 @@
     if (!a) return;
     if (a.dataset.id === 'kakao') openKakao();
     else if (a.dataset.id === 'insta') openInsta();
+    else if (a.dataset.id === 'photos') openPhotos();
   });
 
   /* 홈 표시줄을 누르거나 위로 밀면 홈화면으로 돌아가기 */
@@ -1556,16 +1691,7 @@
 
     // 홈 표시줄을 누르거나 위로 밀면 모든 앱을 닫고 아이폰 홈 화면 표시
     if (dy < -30 || Math.abs(dy) < 25) {
-      kakao.classList.remove('show');
-      room.classList.remove('show');
-      $('kprofile').classList.remove('show');
-      insta.classList.remove('show');
-      $('idm').classList.remove('show');
-      $('idmroom').classList.remove('show');
-      closeStory();
-      $('viewer').classList.remove('show');
-      clearInput();
-      home.classList.add('show');
+      returnToPhoneHome();
     }
   });
 
@@ -1586,6 +1712,8 @@
   const EV_REPLY_GAP_MS = 2000;     // 답장 사이 간격 (2초)
   const EV_TYPE_MS = 130;           // 한 글자 입력 속도
   const EV_BANNER_STEP_MS = 1800;   // 알림에서 다음 메시지로 바뀌는 간격
+  const EV_MJ_DELAY_MS = 60000; // '오키' 전송 1분 뒤 명재현 메시지
+  const EV_MJ_STORY_VIDEO = 'myung_story.mp4'; // 같은 폴더에 올릴 명재현 스토리 영상 파일명
 
   /* 삭제된 메시지 4개 (t = 삭제되기 전 원래 내용) */
   const evDeleted = [
@@ -1605,12 +1733,17 @@
      3 답장 도착(오키 대기) · 4 끝 */
   let evStage = 0;
   let evDay = null;
+  let evMyungDay = null;
   let evOpenAfterUnlock = false;
+  let evOpenStoryAfterUnlock = false;
   let evBannerTimer = null;
   let evTimers = [];
 
   const evIsWoonhakRoom = () =>
     room.classList.contains('show') && activeFriend && !activeFriend.isGroup && activeFriend.name === EV_NAME;
+
+  const evIsMyungRoom = () =>
+    room.classList.contains('show') && activeFriend && !activeFriend.isGroup && activeFriend.name === '명재현';
 
   /* ----- 입력창 타이핑 + 보내기 버튼 ----- */
   const kfld = $('kfld'), ksend = $('ksend');
@@ -1652,17 +1785,26 @@
 
   /* 메시지 하나 추가 후 방이 열려 있으면 다시 그리기 */
   function evPush(m) {
-    evDay.msgs.push(m);
-    if (evIsWoonhakRoom()) renderDirect();
+    // 이벤트 메시지는 발신자에 맞는 채팅 기록에 추가합니다.
+    const targetName = m._target || EV_NAME;
+    const targetDay = targetName === '명재현' ? evMyungDay : evDay;
+    if (!targetDay) return;
+    const cleanMessage = { ...m };
+    delete cleanMessage._target;
+    targetDay.msgs.push(cleanMessage);
+    if ((targetName === EV_NAME && evIsWoonhakRoom()) ||
+        (targetName === '명재현' && evIsMyungRoom())) renderDirect();
     if (kakao.classList.contains('show') && tab === 'chat' && !room.classList.contains('show')) showTab('chat');
   }
 
   /* 채팅방이 열릴 때: 지금 단계에 맞는 글자를 입력창에 타이핑 */
   function evAfterOpen() {
     clearInput();
-    if (!evIsWoonhakRoom()) return;
-    if (evStage === 1) typeInput(EV_MY_ASK.t, evSendAsk);
-    else if (evStage === 3) typeInput(EV_MY_OK.t, evSendOk);
+    if (!evIsWoonhakRoom() && !evIsMyungRoom()) return;
+    if (evStage === 1 && evIsWoonhakRoom()) typeInput(EV_MY_ASK.t, evSendAsk);
+    else if (evStage === 3 && evIsWoonhakRoom()) typeInput(EV_MY_OK.t, evSendOk);
+    else if (evStage === 5 && evIsMyungRoom()) typeInput('뭔소리야', evSendMyungReply1);
+    else if (evStage === 7 && evIsMyungRoom()) typeInput('취객 주우러 갈게', evSendMyungReply2);
   }
 
   /* 내가 '삭제된 메시지 뭐야?' 전송 → 2초 뒤 답장 하나씩 */
@@ -1684,19 +1826,82 @@
   function evSendOk() {
     evStage = 4;
     evPush({ ...EV_MY_OK });
+    // 문하나가 '오키'를 보낸 시점부터 1분을 계산합니다.
+    evTimers.push(setTimeout(evMyungArrive, EV_MJ_DELAY_MS));
+  }
+
+  /* 명재현과의 대화: 답장을 보내면 2초 뒤 다음 메시지가 도착합니다. */
+  function evSendMyungReply1() {
+    evStage = 6;
+    evPush({ me: true, t: '뭔소리야', time: nowHM(), _target: '명재현' });
+    evTimers.push(setTimeout(() => {
+      if (!evMyungDay) return;
+      evPush({ me: false, t: '얘 지금 대박포차에서 맥주 3입 마시더니 우는데??', time: nowHM(), _target: '명재현' });
+      evStage = 7;
+      if (evIsMyungRoom()) typeInput('취객 주우러 갈게', evSendMyungReply2);
+    }, EV_REPLY_GAP_MS));
+  }
+
+  function evSendMyungReply2() {
+    evStage = 8;
+    evPush({ me: true, t: '취객 주우러 갈게', time: nowHM(), _target: '명재현' });
+    evTimers.push(setTimeout(() => {
+      if (!evMyungDay) return;
+      evPush({ me: false, t: '제발 빨리 데려가', time: nowHM(), _target: '명재현' });
+      evStage = 9;
+    }, EV_REPLY_GAP_MS));
   }
 
   /* ----- 알림 배너 ----- */
   function hideBanner() {
+    clearTimeout(evBannerTimer);
     clearInterval(evBannerTimer);
     $('banner').classList.remove('show');
   }
 
-  function drawBanner(text) {
+  let bannerTargetName = EV_NAME;
+  let bannerTargetType = 'kakao';
+  // 카카오톡 알림이 자동으로 사라지거나 사용자가 눌러 닫혀도 다음 알림을 이어서 표시합니다.
+  let bannerAfterHide = null;
+
+  function runBannerAfterHide() {
+    const nextBanner = bannerAfterHide;
+    bannerAfterHide = null;
+    if (typeof nextBanner === 'function') setTimeout(nextBanner, 450);
+  }
+
+  function drawBanner(text, sender = EV_NAME) {
+    bannerTargetName = sender;
+    bannerTargetType = 'kakao';
     $('banner').innerHTML =
       `<div class="bicon"><img src="kakao.png" alt=""></div>` +
       `<div class="btxt"><div class="btop"><span>카카오톡</span><span>지금</span></div>` +
-      `<div class="bname">${EV_NAME}</div><div class="bbody">${text}</div></div>`;
+      `<div class="bname">${sender}</div><div class="bbody">${text}</div></div>`;
+  }
+
+  function showKakaoBanner(sender, text, afterHide = null) {
+    clearTimeout(evBannerTimer);
+    clearInterval(evBannerTimer);
+    bannerAfterHide = afterHide;
+    drawBanner(text, sender);
+    $('banner').classList.add('show');
+    evBannerTimer = setTimeout(() => {
+      // 먼저 카카오톡 배너가 완전히 사라진 뒤 다음 알림을 띄웁니다.
+      hideBanner();
+      runBannerAfterHide();
+    }, 6500);
+  }
+
+  /* 카카오톡 알림이 사라진 다음 명재현의 인스타그램 스토리 알림 표시 */
+  function showInstagramStoryBanner() {
+    bannerTargetName = '명재현';
+    bannerTargetType = 'story';
+    $('banner').innerHTML =
+      `<div class="bicon" style="background:#fff"><img src="instagram.webp" alt=""></div>` +
+      `<div class="btxt"><div class="btop"><span>Instagram</span><span>지금</span></div>` +
+      `<div class="bname">명재현</div><div class="bbody">님이 스토리를 추가했습니다</div></div>`;
+    $('banner').classList.add('show');
+    evBannerTimer = setTimeout(hideBanner, 6500);
   }
 
   /* 삭제 전 원래 메시지 4개를 차례로 보여주고 사라져요 */
@@ -1719,10 +1924,12 @@
   function goEventRoom() {
     hideBanner();
     insta.classList.remove('show');
+    photos.classList.remove('show');
     $('idm').classList.remove('show');
     $('idmroom').classList.remove('show');
     closeStory();
-    $('viewer').classList.remove('show');
+    closeViewer();
+    closeProfiles();
     $('kprofile').classList.remove('show');
     home.classList.add('show');
     openKakao('chat');
@@ -1730,12 +1937,55 @@
     openRoom();
   }
 
+  function openMyungStoryFromBanner() {
+    photos.classList.remove('show');
+    kakao.classList.remove('show');
+    room.classList.remove('show');
+    $('idm').classList.remove('show');
+    $('idmroom').classList.remove('show');
+    closeStory();
+    closeViewer();
+    closeProfiles();
+    $('kprofile').classList.remove('show');
+    home.classList.add('show');
+    openInsta();
+    const myungStoryIndex = igStories.map(story => story.u).lastIndexOf(1);
+    if (myungStoryIndex >= 0) openStory(myungStoryIndex);
+  }
+
   $('banner').addEventListener('click', () => {
-    if (!home.classList.contains('show')) {
-      /* 아직 잠겨 있으면 암호부터 → 풀리면 자동으로 채팅방 열기 */
+    // 사용자가 카카오톡 알림을 먼저 눌러 닫아도 이어질 인스타그램 알림은 취소하지 않습니다.
+    if (bannerTargetType === 'kakao' && typeof bannerAfterHide === 'function') {
+      hideBanner();
+      runBannerAfterHide();
+    }
+    // 알림 종류를 먼저 판별해야 잠금화면에서도 스토리 알림을 올바르게 처리합니다.
+    if (bannerTargetType === 'story') {
+      hideBanner();
+      if (!home.classList.contains('show')) {
+        evOpenStoryAfterUnlock = true;
+        openPass();
+      } else {
+        openMyungStoryFromBanner();
+      }
+    } else if (!home.classList.contains('show')) {
       hideBanner();
       evOpenAfterUnlock = true;
       openPass();
+    } else if (bannerTargetName === '명재현') {
+      hideBanner();
+      insta.classList.remove('show');
+      photos.classList.remove('show');
+      $('idm').classList.remove('show');
+      $('idmroom').classList.remove('show');
+      closeStory();
+      closeViewer();
+      closeProfiles();
+      $('kprofile').classList.remove('show');
+      home.classList.add('show');
+      openKakao('chat');
+      activeFriend = friendList.find(f => f.name === '명재현');
+      openRoom();
     } else {
       goEventRoom();
     }
@@ -1758,6 +2008,47 @@
   }
   setTimeout(evArrive, EVENT_DELAY_MS);
 
+  /* ----- '오키' 1분 뒤 명재현의 카카오톡 + 인스타그램 영상 스토리 ----- */
+  function evMyungArrive() {
+    const sender = '명재현';
+    const msgText = '너 얘한테 뭐라고 했냐';
+    const msgTime = nowHM();
+    const dayLabel = '11월 15일 일요일';
+
+    if (!chats[sender]) chats[sender] = [];
+    let day = chats[sender][chats[sender].length - 1];
+    if (!day || day.date !== dayLabel) {
+      day = { date: dayLabel, msgs: [] };
+      chats[sender].push(day);
+    }
+    day.msgs.push({ me: false, t: msgText, time: msgTime });
+    evMyungDay = day;
+    evStage = 5;
+
+    // 명재현의 새 영상 스토리를 이 시점에만 목록에 추가합니다.
+    igStories.push({
+      u: 1,
+      seen: false,
+      slides: [
+        { f: jip.mp4, video: true, ph: '', time: '방금' }
+      ]
+    });
+    renderStories();
+
+    // 카카오톡을 보고 있는 중이라면 채팅 목록을 즉시 갱신합니다.
+    if (kakao.classList.contains('show') && tab === 'chat' && !room.classList.contains('show')) {
+      showTab('chat');
+    }
+    if (room.classList.contains('show') && activeFriend && activeFriend.name === sender) {
+      renderDirect();
+    }
+
+    // 먼저 카카오톡 메시지 알림을 보여주고, 사라진 뒤 인스타그램 스토리 알림을 표시합니다.
+    showKakaoBanner(sender, msgText, showInstagramStoryBanner);
+    if (evIsMyungRoom()) typeInput('뭔소리야', evSendMyungReply1);
+  }
+
+
 
   /* =====================================================
      인스타그램  (스토리 · 피드 · 좋아요 · DM 이 눌러져요)
@@ -1776,16 +2067,26 @@
     { handle: 'mjhhh', name: '명재현',  ph: '프로필 사진2', f: 'myung.jpeg' },
     { handle: 'woozico0914',      name: '우지호',  ph: '프로필 사진3', f: 'zico.jpeg' },
     { handle: 'campus_24',     name: '캠퍼스24', ph: '프로필 사진4', f: 'campus.jpeg' },
-    { handle: '20s_story',     name: '20s_story', ph: '프로필 사진5', f: '20s.png' }
+    { handle: '20s_story',     name: '20s_story', ph: '프로필 사진5', f: '20s.png' },
+    { handle: 'kori_21',     name: '김동현', ph: '프로필 사진5', f: 'leehan.jpeg' },
+    { handle: igMe.handle, name: igMe.name, ph: igMe.ph, f: igMe.f }   // 문하나 (번호 5) ← 내 스토리용
   ];
 
-  /* ----- 스토리 (u = 위 igUsers 의 번호, slides = 스토리 사진들) ----- */
+  /* ----- 스토리 (u = 위 igUsers 의 번호, slides = 스토리 사진들) -----
+     ★ 사진(slide)마다 time(몇 시간 전)을 따로 적어요.
+     ★ tags: ['아이디'] 를 적으면 스토리 위쪽(이름 아래)에 "@아이디" 태그가 떠요. 여러 명이면 ['a', 'b']
+     ★ mine: true 가 붙은 스토리는 "내 스토리" 동그라미에 연결돼요.
+     ★ 내 스토리를 없애고 싶으면 맨 위 { u: 5, mine: true ... } 항목을 통째로 지우세요. */
   const igStories = [
-    { u: 0, time: '3시간', slides: [ { f: 'story_woonhak1.jpg', ph: '스토리 사진 (김운학 1)' }, { f: 'story_woonhak2.jpg', ph: '스토리 사진 (김운학 2)' } ] },
-    { u: 1, time: '5시간', slides: [ { f: 'story_myung1.jpg', ph: '스토리 사진 (명재현 1)' } ] },
-    { u: 2, time: '8시간', slides: [ { f: 'story_zico1.jpg', ph: '스토리 사진 (우지호 1)' } ] },
-    { u: 3, time: '12시간', slides: [ { f: 'dst.jpg', ph: '스토리 사진 (캠퍼스24 1)' } ] },
-    { u: 4, time: '20시간', slides: [ { f: 'st.jpg', ph: '스토리 사진 (실습일기 1)' } ] }
+    { u: 6, mine: true, slides: [
+        { f: 'escape.jpg', ph: '스토리 사진 (문하나 1)', time: '8시간' }
+    ] },
+    { u: 0, slides: [
+        { f: 'anmoo.jpg', ph: '스토리 사진 (김운학 1)', time: '9시간' },
+        { f: 'escape.jpg', ph: '스토리 사진 (김운학 2)', time: '8시간', tags: ['hana_moon, mjhhh'] }
+    ] },
+    { u: 2, slides: [ { f: 'zico2.jpeg', ph: '스토리 사진 (우지호 1)', time: '8시간' } ] },
+    { u: 3, slides: [ { f: 'dst.jpg', ph: '스토리 사진', time: '12시간' } ] },
   ];
 
   /* ----- 피드 (u = igUsers 번호, f = 게시물 사진 파일, likes = 좋아요 수) ----- */
@@ -1796,8 +2097,102 @@
     { u: 2, f: 'festi.jpeg', ph: '피드 사진 4', likes: 87,   liked: false, caption: 'festi👣', time: '7일 전', comments: 9 },
   ];
 
-  /* ----- DM (키 = 인스타 아이디, 형식은 카카오톡 chats 와 같아요) -----
-     
+  /* =====================================================
+     ★★★ 인스타그램 프로필 데이터 (여기만 고치면 돼요!) ★★★
+     - 키(예: 'hana_moon')는 위 igUsers 의 handle(인스타 아이디)과 똑같이 써야 해요.
+     - 여기에 없는 사람은 프로필이 열리지 않아요. 다른 사람을 추가하려면
+       igUsers 에 그 사람이 있는지 확인한 뒤, 아래 형식을 복사해서 붙여 넣으세요.
+     - 사진 파일은 index.html 과 같은 폴더에 올려요. 파일이 없으면 회색 칸에 파일 이름이 떠서
+       "어떤 이름으로 올려야 하는지" 바로 알 수 있어요.
+     - 이름·프로필 사진은 igUsers 에서 가져와요 (여기서 또 적을 필요 없어요).
+
+     bio        : 소개글. 줄바꿈은 \n
+     link       : 프로필 링크 (없으면 '' 로 두세요)
+     followers / following : 숫자 (10000 이상은 자동으로 '1.2만'처럼 보여요). '1.2만' 같은 글자를 직접 적어도 돼요.
+     postCount  : 게시물 수를 따로 정하고 싶을 때만 (안 적으면 posts 개수가 자동으로 표시돼요)
+     isFollowing (팔로잉 여부, 남의 프로필만): true = '팔로잉', false = '팔로우'
+
+     ★ highlights (스토리 하이라이트)
+        { title: '이름', cover: '커버사진.jpg', slides: [ { f: '사진.jpg', time: '3월 26일', tags: ['아이디'] }, ... ] }
+        - cover 를 안 적으면 첫 번째 slide 사진이 커버가 돼요.
+        - 하이라이트를 누르면 인스타그램처럼 스토리 화면으로 열려요.
+     ★ posts (게시물, 위에서부터 차례로 보여요 / 최신 게시물을 맨 위에)
+        { f: '사진.jpg', caption: '글', likes: 128, comments: 12, time: '2시간 전' }
+        - 여러 장 게시물: f 대신  imgs: ['1.jpg', '2.jpg', '3.jpg']
+        - 맨 위 고정(핀) 게시물: pinned: true
+        - 내가 이미 좋아요 누른 상태로 시작: liked: true
+     ★ reels (릴스 탭): posts 와 같은 형식 + views: '1.2만'  (없으면 빈 칸 [] 로 두세요)
+     ★ tagged (태그됨 탭): posts 와 같은 형식 + by: '올린 사람 아이디'  (없으면 [])
+     ===================================================== */
+  const GRID_RATIO = '3 / 4';   // 게시물 칸 모양: 최신 인스타그램은 '3 / 4'(세로로 긴 칸), 예전 모양은 '1 / 1'
+
+  const igProfiles = {
+    /* ---------- 나 (문하나) ---------- */
+    'hana_moon': {
+      bio: '',
+      link: '',
+      followers: 318, following: 274,
+      highlights: [
+        { title: '🍴', cover: 'ramen.jpeg', slides: [
+            { f: 'ramen.jpeg', time: '3월 26일' },
+            { f: 'ggochi.jpg', time: '4월 1일' },
+            { f: 'don.jpg', time: '4월 10일' },
+            { f: 'sam.jpg', time: '4월 24일' },
+            { f: 'hanjung.jpg', time: '5월 3일' },
+            { f: 'gejang.jpeg', time: '6월 19일' },
+            { f: 'ssal.jpg', time: '7월 6일' },
+            { f: 'bap.jpeg', time: '8월 22일' },
+            { f: 'bapp.jpeg', time: '9월 28일' },
+            { f: 'tteok.jpeg', time: '10월 22일' },
+            { f: 'dsr.jpg', time: '11월 1일' }, ] },
+        { title: '👑', cover: 'girl2.jpeg', slides: [
+            { f: 'girl2.jpeg', time: '5월 16일' },
+            { f: 'girl3.jpeg', time: '5월 16일' }, ] },
+      ],
+
+    },
+
+    /* ---------- 김운학 ---------- */
+    'kokoroga_atsuii': {
+      bio: '김운학 | 26',
+      link: '',
+      followers: 436, following: 391,
+      isFollowing: true,
+      highlights: [
+        { title: '🍴', cover: 'ramen.jpeg', slides: [
+            { f: 'ramen.jpeg', time: '3월 26일' },
+            { f: 'ggochi.jpg', time: '4월 1일' },
+            { f: 'don.jpg', time: '4월 10일' },
+            { f: 'sam.jpg', time: '4월 24일' },
+            { f: 'hanjung.jpg', time: '5월 3일' },
+            { f: 'gejang.jpeg', time: '6월 19일' },
+            { f: 'ssal.jpg', time: '7월 6일' },
+            { f: 'bap.jpeg', time: '8월 22일' },
+            { f: 'bapp.jpeg', time: '9월 28일' },
+            { f: 'tteok.jpeg', time: '10월 22일' },
+            { f: 'dsr.jpg', time: '11월 1일' }, ] },
+        { title: '🎸', cover: 'bandman.jpeg', slides: [
+            { f: 'bandman.jpeg', time: '9월 16일' },
+            { f: 'bandman3.jpeg', time: '9월 17일' } ] },
+        { title: '일상', cover: 'woonn.jpeg', slides: [
+            { f: 'woonn.jpeg', time: '6월 7일' },
+            { f: 'budae.jpg', time: '7월 7일' },
+            { f: 'br.jpg', time: '7월 31일' },
+            { f: 'hu.jpg', time: '8월 4일' },
+            { f: 'dong.jpg', time: '8월 23일' }, ] }
+      ],
+      posts: [
+        { f: 'bandman2.jpeg', pinned: true, caption: '축제 3일차 🎤🔥', likes: 214, comments: 31, time: '9월 17일' , liked: true},
+        { f: 'sunglwoon.jpeg',    caption: '😎😎', likes: 85, comments: 6, time: '6월3일', liked: true },
+        { f: 'daewoon.jpeg',      caption: '해가 좋아서', likes: 128, comments: 12, time: '3월 24일', liked: true },
+      ],
+      reels: [],
+      tagged: []
+    },
+
+  };
+
+  /* ----- DM (키 = 인스타 아이디, 형식은 카카오톡 chats 와 같아요) ----- */
   /* ===== 여기부터는 동작 코드 (건드리지 않아도 돼요) ===== */
   const HEART = 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
   const svg = inner => `<svg class="isvg" viewBox="0 0 24 24">${inner}</svg>`;
@@ -1828,21 +2223,27 @@
   /* 상단 · 하단 바 (눌러지는 건 DM 탭 하나뿐) */
   $('iicons').innerHTML = igi.plus + igi.heart;
   $('itabs').innerHTML =
-    `<div class="itab on">${igi.home}</div>` +
+    `<div class="itab on act" data-tab="home">${igi.home}</div>` +
     `<div class="itab">${igi.reels}</div>` +
     `<div class="itab">${igi.share}<span class="badge">2</span></div>` +
     `<div class="itab">${igi.search}</div>` +
-    `<div class="itab">${igAv(igMe, 26)}</div>`;
+    `<div class="itab act" data-tab="me">${igAv(igMe, 26)}</div>`;
   $('dmicons').innerHTML = igi.video + igi.edit;
   $('dricons').innerHTML = igi.video + '<span>ⓘ</span>';
   $('dmcam').innerHTML = igi.cam;
   $('dmtitle').textContent = igMe.handle;
 
-  /* ----- 스토리 목록 ----- */
+  /* ----- 스토리 목록 (내 스토리가 있으면 눌러지고 색깔 테두리가 생겨요) ----- */
   function renderStories() {
+    const mineIdx = igStories.findIndex(s => s.mine);
+    const has = mineIdx >= 0;
+    const mineSeen = has && igStories[mineIdx].seen;
+
     $('istories').innerHTML =
-      `<div class="story mine"><div class="ring">${igAv(igMe, 66)}<span class="plus">+</span></div><div class="nm">내 스토리</div></div>` +
-      igStories.map((s, i) =>
+      `<div class="story mine${has ? ' act' : ''}${mineSeen ? ' seen' : ''}"${has ? ` data-i="${mineIdx}"` : ''}>` +
+        `<div class="ring"><div class="in">${igAv(igMe, 56)}</div><span class="plus">+</span></div>` +
+        `<div class="nm">내 스토리</div></div>` +
+      igStories.map((s, i) => s.mine ? '' :
         `<div class="story act${s.seen ? ' seen' : ''}" data-i="${i}"><div class="ring"><div class="in">${igAv(igUsers[s.u], 56)}</div></div>` +
         `<div class="nm">${igUsers[s.u].handle}</div></div>`
       ).join('');
@@ -1854,7 +2255,7 @@
     $('ifeed').innerHTML = igPosts.map((p, i) => {
       const u = igUsers[p.u];
       return `<div class="post" id="post${i}">` +
-        `<div class="phead">${igAv(u, 32)}<b>${u.handle}</b><span class="more">⋯</span></div>` +
+        `<div class="phead" data-h="${u.handle}">${igAv(u, 32)}<b>${u.handle}</b><span class="more">⋯</span></div>` +
         `<div class="post-img" data-i="${i}"><span>${p.ph}</span><img src="${p.f}" alt="" onload="this.previousSibling.remove()" onerror="this.remove()"></div>` +
         `<div class="pact"><span class="lk-btn${p.liked ? ' on' : ''}" data-i="${i}">${igi.heart}</span>${igi.comment}${igi.share}<span class="sp2">${igi.save}</span></div>` +
         `<div class="pinfo"><div class="lk-n">좋아요 ${p.likes.toLocaleString('ko-KR')}개</div>` +
@@ -1911,9 +2312,13 @@
 
   /* ----- 스토리 보기 ----- */
   let sIdx = 0, sSlide = 0, sTimer = null;
+  let storyList = igStories;   // 지금 보고 있는 스토리 묶음 (하이라이트를 열면 잠깐 바뀌어요)
   const STORY_MS = 5000;
+  const STORY_VIDEO_MS = 15000; // 영상 스토리는 15초 동안 표시
+  const TAG_ICON = '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.7 3.1-6 7-6s7 2.3 7 6z"/></svg>';
 
   function openStory(i) {
+    storyList = igStories;
     sIdx = i;
     sSlide = 0;
     $('story').classList.add('show');
@@ -1921,31 +2326,47 @@
   }
 
   function renderStory() {
-    const s = igStories[sIdx], u = igUsers[s.u], slides = s.slides;
+    const s = storyList[sIdx], u = igUsers[s.u], slides = s.slides;
     const sl = slides[sSlide];
 
     s.seen = true;
-    const el = document.querySelector(`.story.act[data-i="${sIdx}"]`);
-    if (el) el.classList.add('seen');
+    if (storyList === igStories) {
+      const el = document.querySelector(`.story.act[data-i="${sIdx}"]`);
+      if (el) el.classList.add('seen');
+      document.querySelectorAll(`.pavring[data-si="${sIdx}"]`).forEach(r => r.classList.add('seen'));
+    }
+
+    /* 시간은 사진마다 따로 (사진에 time이 없으면 스토리 전체 time 사용) */
+    const when = sl.time || s.time || '';
+    /* 태그: 이름 아래에 @아이디 로 표시 */
+    const tagHTML = sl.tags && sl.tags.length
+      ? `<div class="stag">${TAG_ICON}<span>${sl.tags.map(t => '@' + t).join(', ')}</span></div>`
+      : '';
 
     $('sbars').innerHTML = slides.map((_, k) => `<span><b class="${k < sSlide ? 'done' : ''}"></b></span>`).join('');
-    $('shead').innerHTML = `${igAv(u, 32)}<b>${u.handle}</b><span class="tm">${s.time}</span>`;
-    $('simg').innerHTML = `<span>${sl.ph}</span><img src="${sl.f}" alt="" onload="this.previousSibling.remove()" onerror="this.remove()">`;
+    $('shead').innerHTML = `${igAv(u, 32)}<div class="sinfo"><div class="sline"><b>${u.handle}</b><span class="tm">${when}</span></div>${tagHTML}</div>`;
+    const isVideo = sl.video || /\\.mp4(?:$|[?#])/i.test(sl.f || '');
+    const slideDuration = isVideo ? STORY_VIDEO_MS : STORY_MS;
+    if (isVideo) {
+      $('simg').innerHTML = `<video src="${sl.f}" autoplay muted playsinline loop></video>`;
+    } else {
+      $('simg').innerHTML = `<span>${sl.ph || sl.f}</span><img src="${sl.f}" alt="" onload="this.previousSibling.remove()" onerror="this.remove()">`;
+    }
 
     const cur = $('sbars').children[sSlide].firstChild;
     void cur.offsetWidth;
-    cur.style.transition = `width ${STORY_MS}ms linear`;
+    cur.style.transition = `width ${slideDuration}ms linear`;
     cur.style.width = '100%';
 
     clearTimeout(sTimer);
-    sTimer = setTimeout(nextStory, STORY_MS);
+    sTimer = setTimeout(nextStory, slideDuration);
   }
 
   function nextStory() {
-    const slides = igStories[sIdx].slides;
+    const slides = storyList[sIdx].slides;
     if (sSlide < slides.length - 1) {
       sSlide++;
-    } else if (sIdx < igStories.length - 1) {
+    } else if (sIdx < storyList.length - 1) {
       sIdx++;
       sSlide = 0;
     } else {
@@ -1968,6 +2389,7 @@
   function closeStory() {
     clearTimeout(sTimer);
     $('story').classList.remove('show');
+    storyList = igStories;
   }
 
   $('istories').addEventListener('click', e => {
@@ -2017,9 +2439,6 @@
     );
   }
 
-  $('itabs').addEventListener('click', e => {
-    if (e.target.closest('.itab.dm')) $('idm').classList.add('show');
-  });
   $('dmback').addEventListener('click', () => $('idm').classList.remove('show'));
   $('drback').addEventListener('click', () => $('idmroom').classList.remove('show'));
   $('dmlist').addEventListener('click', e => {
@@ -2038,44 +2457,355 @@
     insta.classList.add('show');
   }
 
-  /* 인스타그램 하단 홈 표시줄을 누르면 아이폰 기본 홈 화면으로 이동 */
+  /* =====================================================
+     인스타그램 프로필 화면 (동작 코드 — 건드리지 않아도 돼요)
+     내 프로필 / 피드의 이름 / 스토리 위쪽 이름을 누르면 열려요.
+     ===================================================== */
+  Object.assign(igi, {
+    grid:  svg('<rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>'),
+    tag:   svg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="2.6"/><path d="M6.8 19c.7-2.7 2.7-4 5.2-4s4.5 1.3 5.2 4"/>'),
+    menu:  svg('<path d="M3 6.5h18M3 12h18M3 17.5h18"/>'),
+    bell:  svg('<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15l1.5-2z"/><path d="M10 21.5h4"/>'),
+    chev:  svg('<path d="m6 9 6 6 6-6"/>'),
+    addp:  svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.7 2.9-6 6.5-6s6.5 2.3 6.5 6"/><path d="M19 8v6M16 11h6"/>'),
+    pin:   svg('<path d="M14 3l7 7-3 1-3.5 3.5.5 4-1.5 1.5-4-4L5 21l-1-1 4.5-4.5-4-4L6 10l4 .5L13.5 7 14 3z"/>'),
+    multi: svg('<path d="M7 3h12a2 2 0 0 1 2 2v12h-2V5H7V3z"/><rect x="3" y="7" width="14" height="14" rx="2"/>'),
+    play:  svg('<path d="M7 4.5v15l12-7.5-12-7.5z"/>'),
+    newhl: svg('<path d="M12 5v14M5 12h14"/>')
+  });
+
+  const fmtN = n => typeof n === 'string' ? n
+    : n >= 10000 ? (n / 10000).toFixed(1).replace(/\.0$/, '') + '만'
+    : n.toLocaleString('ko-KR');
+  const userOf = h => igUsers.find(x => x.handle === h) || { handle: h, name: h, ph: '', f: '' };
+  const imgTag = (f, extra) => `<span>${f}</span><img src="${f}" alt=""${extra || ''} onload="this.previousSibling.remove()" onerror="this.remove()">`;
+
+  const PF_TABS = [['posts', igi.grid], ['reels', igi.reels], ['tagged', igi.tag]];
+  const PF_TITLES = { posts: '게시물', reels: '릴스', tagged: '게시물' };
+  const PF_EMPTY = { posts: '아직 게시물이 없습니다', reels: '릴스 없음', tagged: '태그된 사진 없음' };
+  let pfHandle = null, pfTab = 'posts', pdList = [];
+
+  document.documentElement.style.setProperty('--ratio', GRID_RATIO);
+
+  function setItab(which) {
+    $('itabs').querySelectorAll('.itab').forEach(t => t.classList.toggle('on', t.dataset.tab === which));
+  }
+
+  /* 위쪽: 사진 · 숫자 · 소개 · 버튼 */
+  function renderPfInfo() {
+    const u = userOf(pfHandle), pr = igProfiles[pfHandle];
+    const mine = pfHandle === igMe.handle;
+    const si = igStories.findIndex(s => igUsers[s.u].handle === pfHandle);
+    const ring = si < 0 ? 'none' : (igStories[si].seen ? 'seen' : '');
+    const cnt = pr.postCount != null ? pr.postCount : (pr.posts || []).length;
+
+    const btns = mine
+      ? `<div class="pfbtn">프로필 편집</div><div class="pfbtn">프로필 공유</div><div class="pfbtn sq">${igi.addp}</div>`
+      : (pr.isFollowing
+          ? `<div class="pfbtn" data-act="follow">팔로잉 ${igi.chev}</div>`
+          : `<div class="pfbtn blue" data-act="follow">팔로우</div>`) +
+        `<div class="pfbtn" data-act="msg">메시지</div><div class="pfbtn sq">${igi.addp}</div>`;
+
+    $('pfinfo').innerHTML =
+      `<div class="pftop"><div class="pavring ${ring}"${si >= 0 ? ` data-si="${si}"` : ''}><div class="in">${igAv(u, 80)}</div>${mine ? '<span class="plus">+</span>' : ''}</div>` +
+        `<div class="pfstats"><div><b>${fmtN(cnt)}</b><span>게시물</span></div><div><b>${fmtN(pr.followers || 0)}</b><span>팔로워</span></div><div><b>${fmtN(pr.following || 0)}</b><span>팔로잉</span></div></div></div>` +
+      `<div class="pfbio"><div class="nm">${u.name}</div>${pr.bio ? `<div class="bio">${pr.bio}</div>` : ''}${pr.link ? `<div class="lnk">${pr.link}</div>` : ''}</div>` +
+      `<div class="pfbtns">${btns}</div>`;
+  }
+
+  /* 스토리 하이라이트 */
+  function renderPfHls() {
+    const pr = igProfiles[pfHandle], mine = pfHandle === igMe.handle;
+    const list = pr.highlights || [];
+    if (!mine && !list.length) { $('pfhls').innerHTML = ''; return; }
+    $('pfhls').innerHTML = '<div class="hls">' +
+      (mine ? `<div class="hl new"><div class="cv"><div class="im">${igi.newhl}</div></div><div class="nm">신규</div></div>` : '') +
+      list.map((h, i) => {
+        const cv = h.cover || (h.slides && h.slides[0] && h.slides[0].f) || '';
+        return `<div class="hl" data-i="${i}"><div class="cv"><div class="im">${imgTag(cv)}</div></div><div class="nm">${h.title}</div></div>`;
+      }).join('') + '</div>';
+  }
+
+  function renderPfTabs() {
+    $('pftabs').innerHTML = PF_TABS.map(t => `<div class="pftab${t[0] === pfTab ? ' on' : ''}" data-t="${t[0]}">${t[1]}</div>`).join('');
+  }
+
+  /* 게시물 칸 모음 */
+  function renderPfGrid() {
+    const list = igProfiles[pfHandle][pfTab] || [];
+    if (!list.length) { $('pfgridwrap').innerHTML = `<div class="pfempty">${PF_EMPTY[pfTab]}</div>`; return; }
+    $('pfgridwrap').innerHTML = '<div class="pfgrid">' + list.map((p, i) => {
+      const first = p.imgs && p.imgs.length ? p.imgs[0] : p.f;
+      return `<div class="gcell" data-i="${i}">${imgTag(first)}` +
+        (p.pinned ? `<div class="ov l">${igi.pin}</div>` : '') +
+        (p.imgs && p.imgs.length > 1 ? `<div class="ov r">${igi.multi}</div>` : '') +
+        (pfTab === 'reels' && !p.views ? `<div class="ov r">${igi.play}</div>` : '') +
+        (p.views ? `<div class="vw">${igi.play}${p.views}</div>` : '') + `</div>`;
+    }).join('') + '</div>';
+  }
+
+  function openProfile(handle) {
+    if (!igProfiles[handle]) return;
+    pfHandle = handle;
+    pfTab = 'posts';
+    const mine = handle === igMe.handle;
+    $('iprof').innerHTML =
+      `<div class="pfhead">` + (mine
+        ? `<div class="hd">${handle}${igi.chev}</div><div class="icons">${igi.plus}${igi.menu}</div>`
+        : `<span class="back" id="pfback">‹</span><div class="hd">${handle}</div><div class="icons">${igi.bell}<span class="mdot">⋯</span></div>`) + `</div>` +
+      `<div class="pfbody" id="pfbody"><div id="pfinfo"></div><div id="pfhls"></div><div class="pftabs" id="pftabs"></div><div id="pfgridwrap"></div></div>`;
+    renderPfInfo(); renderPfHls(); renderPfTabs(); renderPfGrid();
+    $('ipost').classList.remove('show');
+    $('iprof').classList.add('show');
+    setItab(mine ? 'me' : 'home');
+  }
+
+  function closePostDetail() { $('ipost').classList.remove('show'); }
+  function closeProfiles() {
+    $('ipost').classList.remove('show');
+    $('iprof').classList.remove('show');
+    pfHandle = null;
+    setItab('home');
+  }
+
+  /* 하이라이트 → 스토리 화면으로 열기 */
+  function openHighlight(handle, hi) {
+    const h = igProfiles[handle].highlights[hi];
+    if (!h || !h.slides || !h.slides.length) return;
+    storyList = [{ u: igUsers.findIndex(x => x.handle === handle), slides: h.slides }];
+    sIdx = 0; sSlide = 0;
+    $('story').classList.add('show');
+    renderStory();
+  }
+
+  /* 게시물 보기 (누른 게시물부터 아래로 이어서 보여줘요) */
+  function pdPostHTML(p, i) {
+    const u = userOf(p.by || pfHandle);
+    const photos = p.imgs && p.imgs.length ? p.imgs : [p.f];
+    const media = photos.length > 1
+      ? `<div class="car"><div class="cts">${photos.map(f => `<div class="cs">${imgTag(f)}</div>`).join('')}</div><div class="cnt">1/${photos.length}</div></div>`
+      : `<div class="post-img">${imgTag(photos[0])}</div>`;
+    const dots = photos.length > 1 ? `<div class="cdots">${photos.map((_, k) => `<i${k === 0 ? ' class="on"' : ''}></i>`).join('')}</div>` : '';
+    return `<div class="post" data-i="${i}">` +
+      `<div class="phead" data-h="${u.handle}">${igAv(u, 32)}<b>${u.handle}</b><span class="more">⋯</span></div>` +
+      media +
+      `<div class="pact"><span class="lk-btn${p.liked ? ' on' : ''}">${igi.heart}</span>${igi.comment}${igi.share}${dots}<span class="sp2">${igi.save}</span></div>` +
+      `<div class="pinfo"><div class="lk-n">좋아요 ${fmtN(p.likes || 0)}개</div>` +
+      (p.caption ? `<div><b>${u.handle}</b> ${p.caption}</div>` : '') +
+      (p.comments ? `<div class="cm">댓글 ${p.comments}개 모두 보기</div>` : '') +
+      `<div class="tt">${p.time || ''}</div></div></div>`;
+  }
+
+  function openPostDetail(idx) {
+    pdList = igProfiles[pfHandle][pfTab] || [];
+    if (!pdList.length) return;
+    $('ipost').innerHTML =
+      `<div class="pfhead"><span class="back" id="pdback">‹</span><div class="pdt"><small>${pfHandle}</small><b>${PF_TITLES[pfTab]}</b></div></div>` +
+      `<div class="pfbody" id="pdbody">${pdList.map(pdPostHTML).join('')}</div>`;
+    $('ipost').classList.add('show');
+    const target = $('pdbody').children[idx];
+    if (target) $('pdbody').scrollTop = target.offsetTop;
+  }
+
+  function setLikeDetail(el, p, on, pop) {
+    if (!!p.liked !== on) {
+      p.liked = on;
+      p.likes = (typeof p.likes === 'number' ? p.likes : 0) + (on ? 1 : -1);
+    }
+    const btn = el.querySelector('.lk-btn');
+    btn.classList.toggle('on', !!p.liked);
+    el.querySelector('.lk-n').textContent = `좋아요 ${fmtN(p.likes || 0)}개`;
+    if (pop && on) {
+      btn.classList.remove('pop');
+      void btn.offsetWidth;
+      btn.classList.add('pop');
+    }
+  }
+
+  /* ----- 눌렀을 때 동작 ----- */
+  $('iprof').addEventListener('click', e => {
+    if (e.target.closest('#pfback')) { closeProfiles(); return; }
+
+    const ring = e.target.closest('.pavring[data-si]');
+    if (ring) { openStory(Number(ring.dataset.si)); return; }
+
+    const hl = e.target.closest('.hl[data-i]');
+    if (hl) { openHighlight(pfHandle, Number(hl.dataset.i)); return; }
+
+    const tb = e.target.closest('.pftab');
+    if (tb) { pfTab = tb.dataset.t; renderPfTabs(); renderPfGrid(); return; }
+
+    const gc = e.target.closest('.gcell');
+    if (gc) { openPostDetail(Number(gc.dataset.i)); return; }
+
+    const bt = e.target.closest('.pfbtn[data-act]');
+    if (bt) {
+      const pr = igProfiles[pfHandle];
+      if (bt.dataset.act === 'follow') {
+        pr.isFollowing = !pr.isFollowing;
+        if (typeof pr.followers === 'number') pr.followers += pr.isFollowing ? 1 : -1;
+        renderPfInfo();
+      } else if (bt.dataset.act === 'msg') {
+        openDMRoom(userOf(pfHandle));
+      }
+    }
+  });
+
+  $('ipost').addEventListener('click', e => {
+    if (e.target.closest('#pdback')) { closePostDetail(); return; }
+
+    const head = e.target.closest('.phead[data-h]');
+    if (head && !e.target.closest('.more')) {
+      const h = head.dataset.h;
+      if (h !== pfHandle && igProfiles[h]) openProfile(h);
+      else closePostDetail();
+      return;
+    }
+
+    const el = e.target.closest('.post');
+    if (!el) return;
+    const p = pdList[Number(el.dataset.i)];
+
+    if (e.target.closest('.lk-btn')) { setLikeDetail(el, p, !p.liked, true); return; }
+
+    /* 사진 두 번 탭: 좋아요 */
+    const media = e.target.closest('.post-img, .car');
+    if (media) {
+      const now = Date.now();
+      if (now - Number(media.dataset.t || 0) < 350) {
+        setLikeDetail(el, p, true, true);
+        bigHeart(media);
+        media.dataset.t = 0;
+      } else {
+        media.dataset.t = now;
+      }
+    }
+  });
+
+  /* 여러 장 게시물을 옆으로 넘길 때 1/3 숫자와 점 갱신 */
+  $('ipost').addEventListener('scroll', e => {
+    const c = e.target;
+    if (!c.classList || !c.classList.contains('cts')) return;
+    const n = Math.round(c.scrollLeft / c.clientWidth);
+    const post = c.closest('.post');
+    post.querySelectorAll('.cdots i').forEach((d, k) => d.classList.toggle('on', k === n));
+    const cnt = post.querySelector('.cnt');
+    if (cnt) cnt.textContent = `${n + 1}/${c.children.length}`;
+  }, true);
+
+  /* 피드의 이름·사진 → 프로필 */
+  $('ifeed').addEventListener('click', e => {
+    const h = e.target.closest('.phead[data-h]');
+    if (h && !e.target.closest('.more')) openProfile(h.dataset.h);
+  });
+
+  /* 스토리 위쪽의 이름을 누르면 → 프로필 */
+  $('shead').addEventListener('click', () => {
+    const s = storyList[sIdx];
+    if (!s) return;
+    const h = igUsers[s.u].handle;
+    if (!igProfiles[h]) return;
+    closeStory();
+    openProfile(h);
+  });
+
+  /* 아래 탭: 홈 ↔ 내 프로필 */
+  $('itabs').addEventListener('click', e => {
+    const t = e.target.closest('.itab[data-tab]');
+    if (!t) return;
+    if (t.dataset.tab === 'home') closeProfiles();
+    else if (t.dataset.tab === 'me') openProfile(igMe.handle);
+  });
+
+  /* =====================================================
+     사진 앱: 아래 photoLibrary에 사진 파일명과 촬영 날짜를 적어주세요.
+     사진 파일은 index.html과 같은 폴더에 두면 됩니다.
+     ===================================================== */
+  const photoLibrary = [
+    { file: 'ramen.jpeg', date: '2026년 3월 26일 금요일', time: '오후 13:24' },
+    { file: 'photo2.jpg', date: '2026년 5월 16일 토요일', time: '오후 3:18' },
+    { file: 'photo3.jpg', date: '2026년 5월 15일 금요일', time: '오후 8:42' },
+    { file: 'photo4.jpg', date: '2026년 5월 12일 화요일', time: '오후 1:07' },
+    { file: 'photo5.jpg', date: '2026년 5월 10일 일요일', time: '오전 11:32' },
+    { file: 'photo6.jpg', date: '2026년 5월 8일 금요일', time: '오후 6:15' }
+  ];
+  let photoIndex = 0;
+  let photoTouchX = null;
+
+  function renderPhotoGrid() {
+    $('phgrid').innerHTML = photoLibrary.map((p, i) =>
+      `<div class="pcell" data-photo-index="${i}"><img src="${p.file}" alt="${p.date}" loading="lazy" onerror="this.parentNode.remove()"></div>`
+    ).join('');
+    $('phcount').textContent = `${photoLibrary.length}장`;
+    if (!photoLibrary.length) {
+      $('phgrid').innerHTML = '<div class="phempty">사진 목록이 비어 있어요.</div>';
+      $('phcount').textContent = '';
+    }
+  }
+
+  function openPhotos() {
+    renderPhotoGrid();
+    photos.classList.add('show');
+  }
+
+  function showPhoto(index) {
+    if (!photoLibrary.length) return;
+    photoIndex = (index + photoLibrary.length) % photoLibrary.length;
+    const photo = photoLibrary[photoIndex];
+    $('viewerImg').src = photo.file;
+    $('viewerDate').innerHTML = `${photo.date}<small>${photo.time || ''}</small>`;
+    $('viewer').classList.add('show', 'photo-mode');
+  }
+
+  $('phgrid').addEventListener('click', e => {
+    const cell = e.target.closest('.pcell');
+    if (!cell) return;
+    showPhoto(Number(cell.dataset.photoIndex));
+  });
+  $('photoPrev').addEventListener('click', e => { e.stopPropagation(); showPhoto(photoIndex - 1); });
+  $('photoNext').addEventListener('click', e => { e.stopPropagation(); showPhoto(photoIndex + 1); });
+  $('viewer').addEventListener('touchstart', e => {
+    if (!$('viewer').classList.contains('photo-mode')) return;
+    photoTouchX = e.changedTouches[0].clientX;
+  }, { passive:true });
+  $('viewer').addEventListener('touchend', e => {
+    if (photoTouchX === null || !$('viewer').classList.contains('photo-mode')) return;
+    const dx = e.changedTouches[0].clientX - photoTouchX;
+    photoTouchX = null;
+    if (Math.abs(dx) > 45) showPhoto(photoIndex + (dx < 0 ? 1 : -1));
+  }, { passive:true });
+
+  /* 인스타그램/사진 앱 하단 홈 표시줄을 누르면 아이폰 기본 홈 화면으로 이동 */
   function returnToPhoneHome() {
     // 열려 있는 앱과 앱 내부 팝업을 모두 닫습니다.
     kakao.classList.remove('show');
     room.classList.remove('show');
     $('kprofile').classList.remove('show');
     insta.classList.remove('show');
+    photos.classList.remove('show');
     $('idm').classList.remove('show');
     $('idmroom').classList.remove('show');
     closeStory();
-    $('viewer').classList.remove('show');
+    closeViewer();
     clearInput();
+    closeProfiles();
 
     // 잠금/암호 화면이 아니라 앱 아이콘이 있는 홈 화면을 표시합니다.
     home.classList.add('show');
   }
 
-  const instaHomeBar = $('ihome');
-  let instaHomeStartY = null;
-
-  instaHomeBar.addEventListener('pointerdown', e => {
-    instaHomeStartY = e.clientY;
+  /* 인스타·사진 앱의 홈 표시줄 (짧게 누르거나 위로 밀면 홈으로) */
+  [$('ihome'), $('phome')].forEach(bar => {
+    let startYb = null;
+    bar.addEventListener('pointerdown', e => { startYb = e.clientY; });
+    bar.addEventListener('pointerup', e => {
+      if (startYb === null) return;
+      const moved = e.clientY - startYb;
+      startYb = null;
+      if (Math.abs(moved) < 25 || moved < -30) returnToPhoneHome();
+    });
+    bar.addEventListener('pointercancel', () => { startYb = null; });
   });
-
-  instaHomeBar.addEventListener('pointerup', e => {
-    if (instaHomeStartY === null) return;
-    const moved = e.clientY - instaHomeStartY;
-    instaHomeStartY = null;
-    // 짧게 누르거나 위로 밀었을 때 홈으로 이동합니다.
-    if (Math.abs(moved) < 25 || moved < -30) returnToPhoneHome();
-  });
-
-  instaHomeBar.addEventListener('pointercancel', () => {
-    instaHomeStartY = null;
-  });
-
-  // 마우스 클릭 등 pointer 이벤트가 아닌 경우도 처리합니다.
-  instaHomeBar.addEventListener('click', returnToPhoneHome);
 </script>
 </body>
 </html>
