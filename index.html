@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>운사연애</title>
+<link rel="preload" as="image" href="woonhak_wallpaper.jpeg">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
   html, body { height: 100%; }
@@ -18,7 +19,7 @@
     position: relative; overflow: hidden;
     width: min(100vw, 390px); height: min(100dvh, 844px);
     border-radius: 44px;
-    background: #222 url('woonhak_wallpaper.jpeg') center / cover no-repeat;
+    background: #222 url('wallpaper.jpeg') center / cover no-repeat;
     box-shadow: 0 0 0 8px #000, 0 0 0 10px #333;
   }
   @media (max-width: 500px) {
@@ -28,9 +29,22 @@
   .layer.drag { transition: none; }
   .shadow { text-shadow: 0 1px 8px rgba(0,0,0,.45); }
 
+  /* 사진을 불러오는 동안은 파일 이름 글자를 숨겨요.
+     사진 파일이 없어서 img 가 지워지면 이 규칙이 풀려서 이름이 다시 보여요. */
+  span:has(+ img[onload]) { visibility: hidden; }
+
   /* ---------- 잠금화면 ---------- */
   #lock { z-index: 30; touch-action: none; display: flex; flex-direction: column; align-items: center; }
-  #lock .time { margin-top: 90px; font-size: 88px; font-weight: 300; line-height: 1; letter-spacing: -2px; }
+  #lock .time {
+     margin-top: 88px;
+     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+     font-size: 88px;
+     font-weight: 200;
+     line-height: 1;
+     letter-spacing: -4.2px;
+     font-variant-numeric: tabular-nums;
+     text-shadow: 0 1px 10px rgba(0,0,0,.12);
+   }
   #lock .date { margin-top: 10px; font-size: 18px; font-weight: 500; }
   .qbtn {
     position: absolute; bottom: 74px; width: 50px; height: 50px; border-radius: 50%;
@@ -131,6 +145,13 @@
   .bub { max-width: 230px; padding: 8px 11px; border-radius: 14px; background: #fff; color: #111; font-size: 14px; line-height: 1.4; word-break: break-all; }
   .m.me .bub { background: #fee500; }
   .bub.img-only { padding: 0; background: none !important; }
+  /* 음성 메시지 */
+  .bub.voice { display: flex; align-items: center; gap: 9px; width: 196px; padding: 8px 12px 8px 8px; cursor: pointer; }
+  .voice .vbtn { flex: none; width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; color: #444; display: flex; align-items: center; justify-content: center; font-size: 11px; padding-left: 1px; }
+  .voice .vwave { flex: 1; min-width: 0; height: 24px; display: flex; align-items: center; justify-content: space-between; }
+  .voice .vwave i { display: block; width: 3px; border-radius: 2px; background: #cfcfcf; }
+  .voice .vwave i.on { background: #6d6d6d; }
+  .voice .vdur { flex: none; font-size: 12px; color: #777; font-variant-numeric: tabular-nums; }
   .chat-img { display: block; max-width: 200px; max-height: 260px; border-radius: 14px; object-fit: cover; cursor: zoom-in; }
   .bub.deleted { color: #888; }
   .del-view { margin-top: 7px; padding-top: 7px; border-top: 1px solid #eee; font-size: 12px; color: #4a7cf7; cursor: pointer; }
@@ -148,15 +169,6 @@
   #viewer.show { opacity: 1; pointer-events: auto; }
   #viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .viewer-x { position: absolute; top: 56px; right: 20px; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; z-index: 2; }
-  .viewer-date { position:absolute; top:58px; left:18px; right:58px; color:#fff; font-size:15px; font-weight:600; line-height:1.35; text-shadow:0 1px 5px #000; display:none; }
-  .viewer-date small { display:block; margin-top:3px; font-size:12px; font-weight:400; opacity:.8; }
-  .viewer-nav { position:absolute; top:50%; transform:translateY(-50%); width:42px; height:58px; border:0; border-radius:22px; background:rgba(0,0,0,.25); color:#fff; font-size:30px; cursor:pointer; z-index:2; display:none; }
-  .viewer-nav.prev { left:8px; }
-  .viewer-nav.next { right:8px; }
-  #viewer.photo-mode .viewer-date, #viewer.photo-mode .viewer-nav { display:block; }
-  #viewer.photo-mode { touch-action:pan-y; }
-  /* 사진을 크게 볼 때는 상태 표시줄을 흰색으로 */
-  .phone:has(#viewer.show) .status-bar { color: #fff; }
   .m i { font-style: normal; font-size: 10px; color: #4b5b6a; white-space: nowrap; }
   .sp { flex: none; width: 38px; }
 
@@ -182,23 +194,25 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 50px;
-  padding: 0 25px;
+  height: 54px;
+  padding: 0 27px 1px 29px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 50;
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   pointer-events: none;
 }
 
 .status-time {
-  font-size: 15px;
+  display: block;
+  min-width: 48px;
+  font-size: 15.5px;
+  line-height: 1;
   font-weight: 650;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.35px;
   font-variant-numeric: tabular-nums;
-  min-width: 44px;
 }
 
 /* 다이내믹 아일랜드 */
@@ -207,10 +221,10 @@
   top: 7px;
   left: 50%;
   transform: translateX(-50%);
-  width: 120px;
-  height: 34px;
+  width: 126px;
+  height: 36px;
   background: #000;
-  border-radius: 22px;
+  border-radius: 24px;
 }
 
 /* 오른쪽 상태 아이콘 */
@@ -218,13 +232,15 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-  min-width: 76px;
+  gap: 5px;
+  min-width: 78px;
+  height: 18px;
 }
 
 .status-right svg {
   display: block;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .status-right .signal {
@@ -238,7 +254,7 @@
 }
 
 .status-right .battery {
-  width: 25px;
+  width: 26px;
   height: 13px;
   margin-left: 1px;
 }
@@ -248,7 +264,7 @@
   color: #111;
 }
 
-  /* ---------- 알림 배너 ---------- */
+/* ---------- 알림 배너 ---------- */
   #banner {
     position: absolute;
     z-index: 45;
@@ -306,16 +322,83 @@
 }
 
 
-  /* ================= 사진 앱 (갤러리) ================= */
-  #photos { z-index: 16; opacity: 0; pointer-events: none; transform: scale(.92); background: #fff; color: #111; display: flex; flex-direction: column; }
-  #photos.show { opacity: 1; pointer-events: auto; transform: none; }
-  .phhead { flex: none; height: 96px; padding: 50px 18px 0; display: flex; align-items: center; justify-content: space-between; font-size: 22px; font-weight: 700; }
-  .phhead small { font-size: 13px; font-weight: 400; color: #888; }
-  .phgrid { flex: 1; overflow-y: auto; padding-bottom: 34px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; align-content: start; scrollbar-width: none; }
-  .phgrid::-webkit-scrollbar { display: none; }
-  .pcell { aspect-ratio: 1 / 1; background: #eee; overflow: hidden; cursor: pointer; }
-  .pcell img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .phempty { grid-column: 1 / -1; padding: 60px 20px; text-align: center; font-size: 14px; color: #888; }
+  /* ================= 전화 앱 (아이폰 전화 앱 모양) ================= */
+  #tel { z-index: 16; opacity: 0; pointer-events: none; transform: scale(.92); background: #fff; color: #000; display: flex; flex-direction: column; }
+  #tel.show { opacity: 1; pointer-events: auto; transform: none; }
+  .tmain { position: relative; flex: 1; overflow-y: auto; scrollbar-width: none; }
+  .tmain::-webkit-scrollbar { display: none; }
+  .tnav { flex: none; height: 96px; padding: 50px 16px 0; display: flex; align-items: center; justify-content: space-between; color: #007aff; font-size: 17px; }
+  .tnav .plus { font-size: 28px; font-weight: 300; line-height: 1; }
+  .ttitle { padding: 2px 16px 6px; font-size: 34px; font-weight: 700; letter-spacing: -.4px; }
+  .tsearch { margin: 2px 16px 10px; height: 36px; border-radius: 10px; background: #eeeef0; color: #8e8e93; display: flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 17px; }
+  .tsearch svg { width: 16px; height: 16px; fill: none; stroke: #8e8e93; stroke-width: 2.2; stroke-linecap: round; }
+  .tmy { display: flex; align-items: center; gap: 12px; padding: 8px 16px 12px; border-bottom: 1px solid #e5e5ea; }
+  .tmy b { display: block; font-size: 22px; font-weight: 600; }
+  .tmy small { font-size: 13px; color: #8e8e93; }
+  .tsec { padding: 2px 16px; font-size: 13px; font-weight: 600; color: #6d6d72; background: #f2f2f7; }
+  .trow { display: flex; align-items: center; gap: 12px; padding-left: 16px; cursor: pointer; }
+  .trow:active { background: #e5e5ea; }
+  .trow .rb { flex: 1; min-width: 0; padding: 12px 16px 12px 0; border-bottom: 1px solid #e5e5ea; font-size: 17px; font-weight: 600; }
+  .trow .rb small { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 14px; font-weight: 400; color: #8e8e93; }
+  .trow .rb small svg { width: 12px; height: 12px; fill: none; stroke: #8e8e93; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .trow .rt { flex: none; padding-right: 4px; font-size: 15px; color: #8e8e93; }
+  .trow .ri { flex: none; padding-right: 16px; color: #007aff; font-size: 20px; }
+  .tav { flex: none; overflow: hidden; border-radius: 50%; background: linear-gradient(#b9bcc6, #9a9ea9); display: flex; align-items: flex-end; justify-content: center; }
+  .tav svg { width: 74%; height: 74%; fill: #fff; opacity: .92; margin-bottom: -4%; }
+  .tidx { position: absolute; right: 3px; top: 190px; bottom: 100px; z-index: 3; display: none; flex-direction: column; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 700; color: #007aff; pointer-events: none; }
+  .tempty { padding: 90px 20px; text-align: center; font-size: 20px; font-weight: 600; color: #8e8e93; }
+  .tseg { display: flex; padding: 2px; border-radius: 9px; background: #eeeef0; color: #000; font-size: 13px; }
+  .tseg b { padding: 5px 18px; border-radius: 7px; font-weight: 500; cursor: pointer; }
+  .tseg b.on { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+
+  .ttabs { flex: none; height: 80px; padding-bottom: 24px; display: flex; border-top: 1px solid #d1d1d6; background: #f9f9f9; }
+  .ttab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; color: #8e8e93; cursor: pointer; }
+  .ttab svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .ttab.on { color: #007aff; }
+
+  /* 키패드 */
+  .kpwrap { display: flex; flex-direction: column; align-items: center; }
+  .kpnum { margin-top: 92px; height: 44px; max-width: 340px; font-size: 36px; letter-spacing: .3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+  .kpadd { height: 24px; margin-bottom: 8px; font-size: 15px; color: #007aff; }
+  .kpgrid { display: grid; grid-template-columns: repeat(3, 78px); gap: 14px 24px; }
+  .tkey { width: 78px; height: 78px; border-radius: 50%; background: #e9e9ed; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
+  .tkey:active { background: #c8c8cd; }
+  .tkey b { font-size: 34px; font-weight: 400; line-height: 1; }
+  .tkey small { height: 12px; margin-top: 1px; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+  .tkcall { grid-column: 2; width: 78px; height: 78px; border-radius: 50%; background: #34c759; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .tkcall:active { background: #28a745; }
+  .tkcall svg { width: 34px; height: 34px; fill: #fff; }
+  .tkdel { width: 78px; height: 78px; display: flex; align-items: center; justify-content: center; color: #8e8e93; cursor: pointer; }
+  .tkdel svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* 연락처 카드 */
+  #telcard { z-index: 4; }
+  .tback { cursor: pointer; }
+  .tcbody { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 0 16px; scrollbar-width: none; }
+  .tcname { margin-top: 12px; font-size: 30px; font-weight: 700; }
+  .tcacts { margin-top: 18px; width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .tcact { height: 60px; border-radius: 12px; background: #f2f2f7; color: #007aff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; cursor: pointer; }
+  .tcact svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tcact svg.f { fill: currentColor; stroke: none; }
+  .tccard { margin-top: 14px; width: 100%; padding: 10px 14px; border-radius: 12px; background: #f2f2f7; }
+  .tccard small { font-size: 13px; color: #6d6d72; }
+  .tcnum { margin-top: 2px; font-size: 17px; color: #007aff; cursor: pointer; }
+
+  /* 전화 거는 화면 (받지 않아요) */
+  #telcall { position: absolute; inset: 0; z-index: 9; display: none; flex-direction: column; align-items: center; padding: 120px 28px 56px; background: linear-gradient(#55555b, #1c1c1e 75%); color: #fff; }
+  #telcall.show { display: flex; animation: cfade .25s ease; }
+  @keyframes cfade { from { opacity: 0; } to { opacity: 1; } }
+  .cwho { text-align: center; }
+  .cname { font-size: 36px; font-weight: 600; }
+  .cst { margin-top: 6px; font-size: 18px; opacity: .7; }
+  .cgrid { margin-top: auto; display: grid; grid-template-columns: repeat(3, 78px); gap: 22px 28px; }
+  .cbi { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; }
+  .cbc { width: 78px; height: 78px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .cbc svg { width: 32px; height: 32px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cbc.on { background: #fff; }
+  .cbc.on svg { stroke: #1c1c1e; }
+  .cend { margin-top: 34px; width: 78px; height: 78px; border-radius: 50%; background: #ff3b30; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .cend svg { width: 36px; height: 36px; fill: #fff; transform: rotate(135deg); }
 
 
   /* ================= 인스타그램 ================= */
@@ -521,9 +604,10 @@
 
   /* ===== 상태 표시줄 글자색 (맨 아래에 둬야 앞쪽 규칙을 덮어써요) ===== */
   .phone:has(#insta.show) .status-bar { color: #111; }
-  .phone:has(#photos.show) .status-bar { color: #111; }
   .phone:has(#story.show) .status-bar { color: #fff; }
   .phone:has(#viewer.show) .status-bar { color: #fff; }
+  .phone:has(#tel.show) .status-bar { color: #000; }
+  .phone:has(#telcall.show) .status-bar { color: #fff; }
 </style>
 </head>
 <body>
@@ -537,33 +621,27 @@
 
   <div class="status-right">
     <!-- 전파 신호 -->
-    <svg class="signal" viewBox="0 0 18 14" fill="currentColor">
-      <rect x="0" y="9" width="3" height="5" rx="0.7"/>
-      <rect x="4" y="6.5" width="3" height="7.5" rx="0.7"/>
-      <rect x="8" y="3.5" width="3" height="10.5" rx="0.7"/>
-      <rect x="12" y="0.5" width="3" height="13.5" rx="0.7"/>
+    <svg class="signal" viewBox="0 0 18 14" aria-hidden="true">
+      <path d="M1 13V10.4c0-.7.5-1.2 1.2-1.2h1.1c.7 0 1.2.5 1.2 1.2V13H1Z" fill="currentColor"/>
+      <path d="M5.2 13V7.4c0-.7.5-1.2 1.2-1.2h1.1c.7 0 1.2.5 1.2 1.2V13H5.2Z" fill="currentColor"/>
+      <path d="M9.4 13V4.4c0-.7.5-1.2 1.2-1.2h1.1c.7 0 1.2.5 1.2 1.2V13H9.4Z" fill="currentColor"/>
+      <path d="M13.6 13V1.4c0-.7.5-1.2 1.2-1.2h1.1c.7 0 1.2.5 1.2 1.2V13h-3.5Z" fill="currentColor"/>
     </svg>
 
     <!-- Wi-Fi -->
-    <svg class="wifi" viewBox="0 0 18 14"
-         fill="currentColor">
-      <path d="M1 4.3C5.5.5 12.5.5 17 4.3L14.8 6.7
-               C11.4 3.9 6.6 3.9 3.2 6.7Z"/>
-      <path d="M4.2 7.7C7 5.4 11 5.4 13.8 7.7L11.5 10
-               C10 8.8 8 8.8 6.5 10Z"/>
-      <circle cx="9" cy="12" r="1.5"/>
+    <svg class="wifi" viewBox="0 0 18 14" aria-hidden="true">
+      <path d="M.8 4.4C5.4.4 12.6.4 17.2 4.4L15.1 6.6C11.7 3.7 6.3 3.7 2.9 6.6L.8 4.4Z" fill="currentColor"/>
+      <path d="M4.1 7.8C6.9 5.4 11.1 5.4 13.9 7.8L11.8 10C10.2 8.6 7.8 8.6 6.2 10L4.1 7.8Z" fill="currentColor"/>
+      <path d="M7.2 11.1C8.2 10.2 9.8 10.2 10.8 11.1L9 13.1 7.2 11.1Z" fill="currentColor"/>
     </svg>
 
     <!-- 배터리 -->
-    <svg class="battery" viewBox="0 0 27 14">
-      <rect x="0.7" y="1" width="23" height="12"
-            rx="3" fill="none"
-            stroke="currentColor" stroke-width="1.4"/>
-      <rect x="2.7" y="3" width="18.5" height="8"
-            rx="1.5" fill="currentColor"/>
-      <path d="M25 4.5V9.5"
-            stroke="currentColor"
-            stroke-width="2"
+    <svg class="battery" viewBox="0 0 27 14" aria-hidden="true">
+      <rect x=".7" y="1" width="22.2" height="12" rx="3.1"
+            fill="none" stroke="currentColor" stroke-width="1.35"/>
+      <rect x="2.5" y="2.8" width="18.2" height="8.4" rx="1.7"
+            fill="currentColor"/>
+      <path d="M24.2 4.5v5" stroke="currentColor" stroke-width="2"
             stroke-linecap="round"/>
     </svg>
   </div>
@@ -582,9 +660,6 @@
     <!-- 사진 크게 보기 (채팅 속 사진을 누르면 열리고, 아무 데나 누르면 닫혀요) -->
     <div id="viewer">
       <img id="viewerImg" alt="">
-      <div class="viewer-date" id="viewerDate"></div>
-      <button class="viewer-nav prev" id="photoPrev" aria-label="이전 사진">‹</button>
-      <button class="viewer-nav next" id="photoNext" aria-label="다음 사진">›</button>
       <span class="viewer-x" id="viewerClose">✕</span>
     </div>
 
@@ -633,11 +708,14 @@
       <div class="khome" id="khome"></div>
     </div>
 
-    <!-- 사진 앱 (갤러리) -->
-    <div class="layer" id="photos">
-      <div class="phhead"><span>사진</span><small id="phcount"></small></div>
-      <div class="phgrid" id="phgrid"></div>
-      <div class="khome" id="phome"></div>
+    <!-- 전화 앱 -->
+    <div class="layer" id="tel">
+      <div class="tmain" id="tmain"></div>
+      <div class="tidx" id="tidx"></div>
+      <div class="ttabs" id="ttabs"></div>
+      <div class="pane" id="telcard"></div>
+      <div id="telcall"></div>
+      <div class="khome" id="telhome"></div>
     </div>
 
     <!-- 인스타그램 -->
@@ -720,12 +798,11 @@
   const apps = [
     { id: 'kakao', n: '카카오톡', p: '카카오톡1', f: 'kakao.png' },
     { id: 'insta', n: 'instagram', p: '인스타그램1', f: 'instagram.webp' },
-    { id: 'photos', n: '사진', p: '사진1', f: 'images.webp' },
     { n: '블로그', p: '블로그', f: 'blog.png' }
   ];
 
   const dockApps = [
-    { n: '전화', p: '전화1', f: 'call.webp' },
+    { id: 'phone', n: '전화', p: '전화1', f: 'call.webp' },
     { n: '문자', p: '문자1', f: 'message.webp' },
     { n: '네이버', p: '네이버1', f: 'naver.svg' },
     { n: '음악', p: '음악1', f: 'music.webp' }
@@ -1428,12 +1505,70 @@
     ? `<div class="bub deleted"><div>삭제된 메시지입니다.</div>` +
       `<div class="del-view">삭제되기 전 내용보기</div>` +
       `<div class="del-orig" style="display:none">${m.img ? `<img class="chat-img" src="${m.img}" alt="">` : m.t}</div></div>`
+    : m.audio
+      ? voiceHTML(m.audio)
     : m.img
       ? `<div class="bub img-only"><img class="chat-img" src="${m.img}" alt=""></div>`
       : `<div class="bub">${m.t}</div>`;
 
+  /* ===== 음성 메시지 (m.audio = 'um.mp3' 처럼 같은 폴더의 소리 파일) ===== */
+  const VOICE_BARS = [6,10,16,9,14,20,12,8,16,22,14,9,12,18,10,7,14,19,11,8,13,17,9,6];
+  const voiceDur = {};
+  let voiceAudio = null, voiceSrc = null;
+  const fmtDur = sec => { sec = Math.round(sec); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); };
+
+  function voiceHTML(src) {
+    return `<div class="bub voice" data-src="${src}"><span class="vbtn">▶</span>` +
+      `<span class="vwave">${VOICE_BARS.map(h => `<i style="height:${h}px"></i>`).join('')}</span>` +
+      `<span class="vdur">${voiceDur[src] != null ? fmtDur(voiceDur[src]) : '0:00'}</span></div>`;
+  }
+
+  /* 화면에 있는 음성 메시지들의 재생 버튼 · 진행 모양 · 시간 갱신 */
+  function syncVoiceUI() {
+    document.querySelectorAll('.voice').forEach(el => {
+      const src = el.dataset.src;
+      const cur = voiceAudio && voiceSrc === src;
+      const playing = cur && !voiceAudio.paused;
+      const t = cur ? voiceAudio.currentTime : 0;
+      const prog = cur && voiceAudio.duration ? t / voiceAudio.duration : 0;
+      const d = voiceDur[src];
+      el.querySelector('.vbtn').textContent = playing ? '❚❚' : '▶';
+      el.querySelectorAll('.vwave i').forEach((b, i, all) => b.classList.toggle('on', i < Math.round(prog * all.length)));
+      el.querySelector('.vdur').textContent = d != null ? fmtDur(playing ? Math.max(0, d - t) : d) : '0:00';
+    });
+  }
+
+  function loadVoiceDur(src) {
+    if (voiceDur[src] != null) return;
+    const a = new Audio();
+    a.preload = 'metadata';
+    a.onloadedmetadata = () => { if (isFinite(a.duration)) { voiceDur[src] = a.duration; syncVoiceUI(); } };
+    a.src = src;
+  }
+
+  function toggleVoice(src) {
+    if (voiceAudio && voiceSrc === src) {
+      if (voiceAudio.paused) voiceAudio.play().catch(() => {});
+      else voiceAudio.pause();
+      syncVoiceUI();
+      return;
+    }
+    stopVoice();
+    voiceAudio = new Audio(src);
+    voiceSrc = src;
+    ['timeupdate', 'play', 'pause'].forEach(ev => voiceAudio.addEventListener(ev, syncVoiceUI));
+    voiceAudio.addEventListener('ended', () => { voiceAudio.currentTime = 0; syncVoiceUI(); });
+    voiceAudio.play().catch(() => {});
+    syncVoiceUI();
+  }
+
+  function stopVoice() {
+    if (voiceAudio) { voiceAudio.pause(); voiceAudio = null; voiceSrc = null; }
+    syncVoiceUI();
+  }
+
   /* 채팅 목록·알림에 보여줄 미리보기 (삭제된 메시지 > 사진 > 글) */
-  const preview = m => m.deleted ? '삭제된 메시지입니다.' : (m.img ? '사진' : m.t);
+  const preview = m => m.deleted ? '삭제된 메시지입니다.' : (m.audio ? '음성메시지' : m.img ? '사진' : m.t);
 
   /* 해당 친구와의 마지막 메시지 (대화가 없으면 null) */
   const lastMsg = f => {
@@ -1444,7 +1579,6 @@
   };
 
   const kakao = $('kakao'), room = $('kroom');
-  const photos = $('photos');
   let tab = 'friends';
   let activeFriend = friend;
   let selectedProfile = null;
@@ -1528,6 +1662,10 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     $('rbody').querySelectorAll('.chat-img').forEach(img =>
       img.addEventListener('load', () => { $('rbody').scrollTop = $('rbody').scrollHeight; })
     );
+
+    /* 음성 메시지: 길이 불러오고 재생 상태 맞추기 */
+    $('rbody').querySelectorAll('.voice').forEach(v => loadVoiceDur(v.dataset.src));
+    syncVoiceUI();
   }
 
   function openRoom() {
@@ -1575,7 +1713,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
 
   /* ===== 친구 프로필 열기/닫기 (SVG 이미지 지원) ===== */
-  function openProfile(f) {
+  function openKakaoProfile(f) {
     selectedProfile = f;
     $('profileName').textContent = f.name;
     $('profileStatus').textContent = f.status || '상태메시지';
@@ -1584,7 +1722,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     const label = $('profileCoverLabel');
     const cover = $('profileCoverImg');
     label.textContent = f.bg ? f.bg.replace(/\.(jpe?g|png|webp|svg)$/i, '') : '배경';
-    label.style.display = 'flex';
+    label.style.display = f.bg ? 'none' : 'flex';
     cover.style.display = 'none';
     cover.onload = () => { cover.style.display = 'block'; label.style.display = 'none'; };
     cover.onerror = () => { cover.style.display = 'none'; label.style.display = 'flex'; };
@@ -1599,7 +1737,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   $('kmain').addEventListener('click', e => {
     const row = e.target.closest('.friend-row');
     if (row) {
-      openProfile(friendList[Number(row.dataset.friendIndex)]);
+      openKakaoProfile(friendList[Number(row.dataset.friendIndex)]);
       return;
     }
 
@@ -1627,6 +1765,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
   $('rback').addEventListener('click', () => {
     room.classList.remove('show');
+    stopVoice();
     clearInput();
     /* 채팅 목록을 보고 있다면 미리보기·시간 갱신 */
     if (tab === 'chat') showTab('chat');
@@ -1634,6 +1773,9 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
   /* 채팅 속 사진을 누르면 크게 보기 / 아무 데나 누르면 닫기 */
   $('rbody').addEventListener('click', e => {
+    const vo = e.target.closest('.voice');
+    if (vo) { toggleVoice(vo.dataset.src); return; }
+
     /* 삭제되기 전 내용보기: 누를 때마다 펼치기/접기 */
     const v = e.target.closest('.del-view');
     if (v) {
@@ -1648,19 +1790,16 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
     const img = e.target.closest('.chat-img');
     if (!img) return;
-    $('viewer').classList.remove('photo-mode');
-    $('viewerDate').innerHTML = '';
     $('viewerImg').src = img.src;
     $('viewer').classList.add('show');
   });
   $('viewerClose').addEventListener('click', e => { e.stopPropagation(); closeViewer(); });
   $('viewer').addEventListener('click', e => {
-    if (e.target.closest('.viewer-nav')) return;
     if (e.target === $('viewer') || e.target === $('viewerClose')) closeViewer();
   });
 
   function closeViewer() {
-    $('viewer').classList.remove('show', 'photo-mode');
+    $('viewer').classList.remove('show');
   }
 
   $('ktabs').addEventListener('click', e => {
@@ -1673,7 +1812,6 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     if (!a) return;
     if (a.dataset.id === 'kakao') openKakao();
     else if (a.dataset.id === 'insta') openInsta();
-    else if (a.dataset.id === 'photos') openPhotos();
   });
 
   /* 홈 표시줄을 누르거나 위로 밀면 홈화면으로 돌아가기 */
@@ -1707,12 +1845,20 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
      ★ 테스트용: 주소 뒤에 ?fast 를 붙이면 2분 대신 5초 뒤에 시작해요.
         예) index.html?fast
      ===================================================== */
-  const EVENT_DELAY_MS = location.search.includes('fast') ? 5000 : 120000;  // 2분
+  /* ★ 테스트용 스위치: true 로 바꾸면 이벤트 기다리는 시간이 전부 5초로 줄어요. (확인 끝나면 false 로!)
+       (인터넷 주소 뒤에 ?fast 를 붙여도 똑같이 동작해요) */
+  const FAST_TEST = false;
+  const waitMs = ms => (FAST_TEST || location.search.includes('fast')) ? 5000 : ms;
+
+  const EVENT_DELAY_MS = waitMs(120000);  // 2분
   const EV_NAME = '김운학';
   const EV_REPLY_GAP_MS = 2000;     // 답장 사이 간격 (2초)
   const EV_TYPE_MS = 130;           // 한 글자 입력 속도
   const EV_BANNER_STEP_MS = 1800;   // 알림에서 다음 메시지로 바뀌는 간격
-  const EV_MJ_DELAY_MS = 60000; // '오키' 전송 1분 뒤 명재현 메시지
+  const EV_MJ_DELAY_MS = waitMs(60000); // '오키' 전송 1분 뒤 명재현 메시지
+  const EV_WOON_DELAY_MS = waitMs(60000);   // 명재현 새 스토리(jip.mp4)를 본 뒤 1분
+  const EV_HANSU_DELAY_MS = waitMs(60000);  // 김운학의 마지막 '넵!!' 뒤 1분 → 명재현 스토리 알림(hansu.jpeg)
+  const EV_WOON2_DELAY_MS = waitMs(30000);  // hansu.jpg 스토리를 본 뒤 30초 → 김운학 카톡(26일)
   const EV_MJ_STORY_VIDEO = 'myung_story.mp4'; // 같은 폴더에 올릴 명재현 스토리 영상 파일명
 
   /* 삭제된 메시지 4개 (t = 삭제되기 전 원래 내용) */
@@ -1734,6 +1880,9 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   let evStage = 0;
   let evDay = null;
   let evMyungDay = null;
+  let evWoonDay2 = null;          // 11월 16일 월요일 김운학 대화
+  let evWoonTriggered = false;    // 명재현 새 스토리를 봤는지(한 번만 시작)
+  let evWoon2Triggered = false;   // hansu.jpg 스토리를 봤는지(한 번만 시작)
   let evOpenAfterUnlock = false;
   let evOpenStoryAfterUnlock = false;
   let evBannerTimer = null;
@@ -1787,10 +1936,11 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   function evPush(m) {
     // 이벤트 메시지는 발신자에 맞는 채팅 기록에 추가합니다.
     const targetName = m._target || EV_NAME;
-    const targetDay = targetName === '명재현' ? evMyungDay : evDay;
+    const targetDay = m._day || (targetName === '명재현' ? evMyungDay : evDay);
     if (!targetDay) return;
     const cleanMessage = { ...m };
     delete cleanMessage._target;
+    delete cleanMessage._day;
     targetDay.msgs.push(cleanMessage);
     if ((targetName === EV_NAME && evIsWoonhakRoom()) ||
         (targetName === '명재현' && evIsMyungRoom())) renderDirect();
@@ -1805,6 +1955,8 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     else if (evStage === 3 && evIsWoonhakRoom()) typeInput(EV_MY_OK.t, evSendOk);
     else if (evStage === 5 && evIsMyungRoom()) typeInput('뭔소리야', evSendMyungReply1);
     else if (evStage === 7 && evIsMyungRoom()) typeInput('취객 주우러 갈게', evSendMyungReply2);
+    /* 11월 16일 김운학 대화 */
+    else if (evStage === 10 && evIsWoonhakRoom()) evWoonType();
   }
 
   /* 내가 '삭제된 메시지 뭐야?' 전송 → 2초 뒤 답장 하나씩 */
@@ -1834,12 +1986,21 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   function evSendMyungReply1() {
     evStage = 6;
     evPush({ me: true, t: '뭔소리야', time: nowHM(), _target: '명재현' });
-    evTimers.push(setTimeout(() => {
+
+    /* 2초 간격으로: 글 → 글 → 음성 메시지 */
+    const seq = [
+      () => evPush({ me: false, t: '얘 지금 대박포차에서 맥주 3입 마시더니', time: nowHM(), _target: '명재현' }),
+      () => evPush({ me: false, t: '우는데??', time: nowHM(), _target: '명재현' }),
+      () => {
+        evPush({ me: false, audio: 'um.mp3', time: nowHM(), _target: '명재현' });   // 같은 폴더의 um.mp3
+        evStage = 7;
+        if (evIsMyungRoom()) typeInput('취객 주우러 갈게', evSendMyungReply2);
+      }
+    ];
+    seq.forEach((fn, i) => evTimers.push(setTimeout(() => {
       if (!evMyungDay) return;
-      evPush({ me: false, t: '얘 지금 대박포차에서 맥주 3입 마시더니 우는데??', time: nowHM(), _target: '명재현' });
-      evStage = 7;
-      if (evIsMyungRoom()) typeInput('취객 주우러 갈게', evSendMyungReply2);
-    }, EV_REPLY_GAP_MS));
+      fn();
+    }, EV_REPLY_GAP_MS * (i + 1))));
   }
 
   function evSendMyungReply2() {
@@ -1847,9 +2008,174 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     evPush({ me: true, t: '취객 주우러 갈게', time: nowHM(), _target: '명재현' });
     evTimers.push(setTimeout(() => {
       if (!evMyungDay) return;
-      evPush({ me: false, t: '제발 빨리 데려가', time: nowHM(), _target: '명재현' });
+      evPush({ me: false, t: '제발 데려가', time: nowHM(), _target: '명재현' });
       evStage = 9;
+      evAddMyungStory();   // 알림을 누르지 않아도 인스타 스토리에는 이미 올라가 있어요
+      evTimers.push(setTimeout(showInstagramStoryBanner, 1500));
     }, EV_REPLY_GAP_MS));
+  }
+
+  /* 명재현의 스토리에 jip.mp4 추가 (이미 있는 스토리 뒤에 이어 붙이고, 안 본 상태로 되돌려요) */
+  function evAddMyungStory() {
+    const slide = { f: 'jip.mp4', video: true, ph: '', time: '방금' };
+    const st = igStories.find(x => x.u === 1);
+    if (st) {
+      if (!st.slides.some(x => x.f === slide.f)) {
+        st.firstNew = st.slides.length;   // 열면 새로 올라온 영상부터 보여줘요
+        st.slides.push(slide);
+      }
+      st.seen = false;
+    } else {
+      igStories.push({ u: 1, seen: false, slides: [slide] });
+    }
+    renderStories();
+  }
+
+  /* =====================================================
+     ★★★ 11월 16일 월요일 · 김운학 대화 이벤트 ★★★
+     명재현의 새 스토리(jip.mp4)를 본 1분 뒤에 시작해요.
+     내가 보내는 말(입력창에 타이핑되는 글)은 아래 W_ME 에서 고치세요.
+     ===================================================== */
+  const W_DATE = '11월 16일 월요일';
+  const W_FIRST = '누나 저 어제 집에 어떻게 들어왔죠...?';
+
+  /* 내가 보내는 말 (입력창에 타이핑되는 글). r1a, r1b 처럼 나눠 적은 건 따로따로 전송돼요. */
+  const W_ME = {
+    r1a: '내가 180넘는 거구의 남자를',
+    r1b: '30분 동안 업고 갔지',
+    r2a: '편의점 과자 코너에서 ',
+    r2b: '여기서부터 저기까지 다 주세요',
+    r2c: '말한 거 말곤 없어',
+    r3a: '숙취해소스틱 맛있다고',
+    r3b: '박스째로 먹으려던 거 겨우 말림',
+    r4:  '너 11/28에 뭐해?',
+    r5:  '그때 사줘'
+  };
+
+  /* 대화 순서표: me = 내가 보낼 말, reply = 그걸 보내면 2초 간격으로 오는 김운학의 말
+     ★ 말을 더 나누고 싶으면 { me: W_ME.r1c } 처럼 한 줄만 끼워 넣으면 돼요.
+     ★ reply 가 없으면 바로 다음 내 말이 이어서 타이핑돼요. */
+  const W_FLOW = [
+    { me: W_ME.r1a },
+    { me: W_ME.r1b, reply: ['누나 무거웠을 텐데 미안해요 ㅠㅠㅠ', '혹시 저 실수한 거 없었어요?'] },
+    { me: W_ME.r2a },
+    { me: W_ME.r2b },
+    { me: W_ME.r2c, reply: ['🤦🏻‍♂️.. 그거 말곤 없죠..???'] },
+    { me: W_ME.r3a },
+    { me: W_ME.r3b, reply: ['누나... 제발 밥 살게요'] },
+    { me: W_ME.r4,  reply: ['아무것도 없어요!!'] },
+    { me: W_ME.r5,  reply: ['넵!!'] }
+  ];
+  let evWoonStep = -1;      // 지금 타이핑될 차례인 순서표 번호 (-1 = 답장 기다리는 중/끝)
+  let evFlowSteps = [];     // 지금 진행 중인 순서표 (W_FLOW 또는 W2_FLOW)
+  let evFlowEnd = null;     // 순서표가 끝나면 할 일
+
+  const evWoonPush = m => evPush({ ...m, time: nowHM(), _target: EV_NAME, _day: evWoonDay2 });
+  const evWoonLater = (n, fn) => {
+    const d = evWoonDay2;
+    evTimers.push(setTimeout(() => { if (evWoonDay2 === d) fn(); }, EV_REPLY_GAP_MS * n));
+  };
+
+  /* 새 대화(순서표) 시작 */
+  function evFlowStart(day, steps, onEnd) {
+    evWoonDay2 = day;
+    evFlowSteps = steps;
+    evFlowEnd = onEnd || null;
+    evWoonStep = 0;
+    evStage = 10;
+    chats[EV_NAME].push(day);
+  }
+
+  /* 내 차례의 글을 (김운학 방에 있다면) 입력창에 타이핑 */
+  function evWoonType() {
+    const i = evWoonStep;
+    if (i < 0 || !evFlowSteps[i] || !evIsWoonhakRoom()) return;
+    typeInput(evFlowSteps[i].me, () => evWoonSend(i));
+  }
+
+  /* 내 말 전송 → 김운학 답장(있으면) → 다음 내 말 */
+  function evWoonSend(i) {
+    const step = evFlowSteps[i];
+    const replies = step.reply || [];
+    evWoonStep = -1;
+    evWoonPush({ me: true, t: step.me });
+
+    // 11월 26일 대화에서 내가 '당연하지'를 전송하면 아이폰 배경화면을 운학 사진으로 변경해요.
+    if (step.me === W2_ME.r3) {
+      $('phone').style.backgroundImage = "url('woonhak_wallpaper.jpeg')";
+    }
+
+    replies.forEach((t, k) => evWoonLater(k + 1, () => evWoonPush({ me: false, t })));
+    evWoonLater(replies.length, () => {
+      if (i + 1 < evFlowSteps.length) { evWoonStep = i + 1; evWoonType(); }
+      else { evStage = 11; if (evFlowEnd) evFlowEnd(); }   // 끝
+    });
+  }
+
+  /* 김운학 새 메시지가 왔을 때: 화면 갱신 + 카톡 알림 */
+  function evFlowShow(bannerText) {
+    if (evIsWoonhakRoom()) {
+      renderDirect();
+      evWoonType();
+    } else if (kakao.classList.contains('show') && tab === 'chat' && !room.classList.contains('show')) {
+      showTab('chat');
+    }
+    showKakaoBanner(EV_NAME, bannerText);
+  }
+
+  /* 명재현 스토리를 본 1분 뒤: 김운학 카톡 + 알림 (11월 16일) */
+  function evWoonArrive() {
+    evFlowStart(
+      { date: W_DATE, msgs: [{ me: false, t: W_FIRST, time: nowHM() }] },
+      W_FLOW,
+      /* 마지막 '넵!!' 이 오고 1분 뒤 → 명재현 스토리 알림 */
+      () => evTimers.push(setTimeout(evHansuArrive, EV_HANSU_DELAY_MS))
+    );
+
+    /* 16일로 넘어가면 명재현 스토리의 '방금'을 '13시간'으로 바꿔요 */
+    igStories.forEach(st => st.slides.forEach(sl => { if (sl.f === 'jip.mp4') sl.time = '13시간'; }));
+
+    evFlowShow(W_FIRST);
+  }
+
+  /* =====================================================
+     ★★★ 11월 26일 · 명재현 새 스토리(hansu.jpg) → 김운학 카톡 ★★★
+     1) 김운학 '넵!!' 1분 뒤 명재현 스토리 알림. 26일이 됐으니 예전 스토리는 전부 사라지고
+        명재현의 hansu.jpg 스토리만 남아요. (알림을 누르지 않아도 인스타에 들어가면 올라와 있어요)
+     2) 그 스토리를 확인하고 30초 뒤 김운학에게 카톡(사진 포함)이 와요.
+     ===================================================== */
+  const W2_DATE  = '11월 26일 목요일';
+  const W2_FIRST = '누나 이 사진으로 배사해요!!';
+  const W2_PHOTO = 'woonhak_wallpaper.jpeg';
+
+  const W2_ME = {
+    r1: '뭐야 갑자기..?',
+    r2: '알겠어 딱 이틀만 해준다',
+    r3: '당연하지'
+  };
+  const W2_FLOW = [
+    { me: W2_ME.r1, reply: ['잘 나와서 자랑하고 싶었어요', '해주면 안돼요? 🥹'] },
+    { me: W2_ME.r2, reply: ['고마워요', '28일 안 잊었죠?'] },
+    { me: W2_ME.r3 }
+  ];
+
+  function evHansuArrive() {
+    igStories.length = 0;     // 26일이니까 예전 스토리는 모두 사라져요 (내 스토리 포함)
+    igStories.push({ u: 1, seen: false, slides: [ { f: 'hansu.jpg', ph: '', time: '방금' } ] });
+    renderStories();
+    evStage = 12;
+    showInstagramStoryBanner();
+  }
+
+  function evWoon2Arrive() {
+    evFlowStart(
+      { date: W2_DATE, msgs: [
+          { me: false, t: W2_FIRST, time: nowHM() },
+          { me: false, img: W2_PHOTO, time: nowHM() }
+      ] },
+      W2_FLOW
+    );
+    evFlowShow(W2_FIRST);
   }
 
   /* ----- 알림 배너 ----- */
@@ -1894,6 +2220,9 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
   /* 카카오톡 알림이 사라진 다음 명재현의 인스타그램 스토리 알림 표시 */
   function showInstagramStoryBanner() {
+    clearTimeout(evBannerTimer);
+    clearInterval(evBannerTimer);
+    bannerAfterHide = null;
     bannerTargetName = '명재현';
     bannerTargetType = 'story';
     $('banner').innerHTML =
@@ -1924,10 +2253,10 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   function goEventRoom() {
     hideBanner();
     insta.classList.remove('show');
-    photos.classList.remove('show');
     $('idm').classList.remove('show');
     $('idmroom').classList.remove('show');
     closeStory();
+    closeTel();
     closeViewer();
     closeProfiles();
     $('kprofile').classList.remove('show');
@@ -1938,12 +2267,12 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   }
 
   function openMyungStoryFromBanner() {
-    photos.classList.remove('show');
     kakao.classList.remove('show');
     room.classList.remove('show');
     $('idm').classList.remove('show');
     $('idmroom').classList.remove('show');
     closeStory();
+    closeTel();
     closeViewer();
     closeProfiles();
     $('kprofile').classList.remove('show');
@@ -1975,10 +2304,10 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     } else if (bannerTargetName === '명재현') {
       hideBanner();
       insta.classList.remove('show');
-      photos.classList.remove('show');
       $('idm').classList.remove('show');
       $('idmroom').classList.remove('show');
       closeStory();
+      closeTel();
       closeViewer();
       closeProfiles();
       $('kprofile').classList.remove('show');
@@ -2025,16 +2354,6 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     evMyungDay = day;
     evStage = 5;
 
-    // 명재현의 새 영상 스토리를 이 시점에만 목록에 추가합니다.
-    igStories.push({
-      u: 1,
-      seen: false,
-      slides: [
-        { f: jip.mp4, video: true, ph: '', time: '방금' }
-      ]
-    });
-    renderStories();
-
     // 카카오톡을 보고 있는 중이라면 채팅 목록을 즉시 갱신합니다.
     if (kakao.classList.contains('show') && tab === 'chat' && !room.classList.contains('show')) {
       showTab('chat');
@@ -2043,8 +2362,8 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
       renderDirect();
     }
 
-    // 먼저 카카오톡 메시지 알림을 보여주고, 사라진 뒤 인스타그램 스토리 알림을 표시합니다.
-    showKakaoBanner(sender, msgText, showInstagramStoryBanner);
+    // 카카오톡 메시지 알림만 먼저 보여줘요. (스토리는 '제발 데려가' 뒤에 올라와요)
+    showKakaoBanner(sender, msgText);
     if (evIsMyungRoom()) typeInput('뭔소리야', evSendMyungReply1);
   }
 
@@ -2082,11 +2401,13 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
         { f: 'escape.jpg', ph: '스토리 사진 (문하나 1)', time: '8시간' }
     ] },
     { u: 0, slides: [
-        { f: 'anmoo.jpg', ph: '스토리 사진 (김운학 1)', time: '9시간' },
-        { f: 'escape.jpg', ph: '스토리 사진 (김운학 2)', time: '8시간', tags: ['hana_moon, mjhhh'] }
+        { f: 'anmoo.jpg', ph: '', time: '9시간' },
+        { f: 'escape.jpg', ph: '', time: '8시간', tags: ['hana_moon, mjhhh'] }
     ] },
-    { u: 2, slides: [ { f: 'zico2.jpeg', ph: '스토리 사진 (우지호 1)', time: '8시간' } ] },
-    { u: 3, slides: [ { f: 'dst.jpg', ph: '스토리 사진', time: '12시간' } ] },
+    { u: 1, slides: [ { f: 'anmoo.jpg', ph: '', time: '8시간' } ] },
+    { u: 2, slides: [ { f: 'zico2.jpeg', ph: '', time: '8시간' } ] },
+    { u: 5, slides: [ { f: 'koni.jpeg', ph: '', time: '9시간' } ] },
+    { u: 3, slides: [ { f: 'dst.jpg', ph: '', time: '12시간' } ] },
   ];
 
   /* ----- 피드 (u = igUsers 번호, f = 게시물 사진 파일, likes = 좋아요 수) ----- */
@@ -2320,7 +2641,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   function openStory(i) {
     storyList = igStories;
     sIdx = i;
-    sSlide = 0;
+    sSlide = (!igStories[i].seen && igStories[i].firstNew) || 0;
     $('story').classList.add('show');
     renderStory();
   }
@@ -2328,6 +2649,18 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   function renderStory() {
     const s = storyList[sIdx], u = igUsers[s.u], slides = s.slides;
     const sl = slides[sSlide];
+
+    /* 명재현의 새 스토리(jip.mp4)를 보면 1분 뒤 김운학에게 카톡이 와요 */
+    if (sl.f === 'jip.mp4' && !evWoonTriggered && evStage >= 9) {
+      evWoonTriggered = true;
+      evTimers.push(setTimeout(evWoonArrive, EV_WOON_DELAY_MS));
+    }
+
+    /* 명재현의 hansu.jpg 스토리를 보면 30초 뒤 김운학에게 카톡이 와요 */
+    if (sl.f === 'hansu.jpg' && !evWoon2Triggered && evStage >= 12) {
+      evWoon2Triggered = true;
+      evTimers.push(setTimeout(evWoon2Arrive, EV_WOON2_DELAY_MS));
+    }
 
     s.seen = true;
     if (storyList === igStories) {
@@ -2717,75 +3050,188 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     else if (t.dataset.tab === 'me') openProfile(igMe.handle);
   });
 
+
   /* =====================================================
-     사진 앱: 아래 photoLibrary에 사진 파일명과 촬영 날짜를 적어주세요.
-     사진 파일은 index.html과 같은 폴더에 두면 됩니다.
+     전화 앱 (아이폰 전화 앱처럼: 즐겨찾기 · 최근 통화 · 연락처 · 키패드 · 음성 메시지)
+     연락처를 누르면 전화를 걸 수 있지만, 상대는 받지 않아요. (빨간 버튼으로 끊기)
      ===================================================== */
-  const photoLibrary = [
-    { file: 'ramen.jpeg', date: '2026년 3월 26일 금요일', time: '오후 13:24' },
-    { file: 'photo2.jpg', date: '2026년 5월 16일 토요일', time: '오후 3:18' },
-    { file: 'photo3.jpg', date: '2026년 5월 15일 금요일', time: '오후 8:42' },
-    { file: 'photo4.jpg', date: '2026년 5월 12일 화요일', time: '오후 1:07' },
-    { file: 'photo5.jpg', date: '2026년 5월 10일 일요일', time: '오전 11:32' },
-    { file: 'photo6.jpg', date: '2026년 5월 8일 금요일', time: '오후 6:15' }
+  const tel = $('tel');
+  const TEL_ROW_PHOTOS = false;   // true 로 바꾸면 연락처 목록에도 기본 프로필 사진이 보여요 (진짜 아이폰은 이름만 보여요)
+
+  /* ★ 연락처: 이름 · 번호 (번호는 마음대로 바꾸세요) */
+  const telContacts = [
+    { name: '김운학', num: '010-1234-1129' },
+    { name: '명재현', num: '010-1234-1204' },
+    { name: '우지호', num: '010-1234-0914' },
+    { name: '부희주', num: '010-1234-0912' },
+    { name: '정사이', num: '010-1234-4242' },
+    { name: '시준휘', num: '010-1234-0612' },
+    { name: '엄마',   num: '010-1234-520' },
+    { name: '아빠',   num: '010-1234-520' }
+  ].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+
+  const CHO = ['ㄱ','ㄱ','ㄴ','ㄷ','ㄷ','ㄹ','ㅁ','ㅂ','ㅂ','ㅅ','ㅅ','ㅇ','ㅈ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const telInitial = n => { const c = n.charCodeAt(0) - 0xAC00; return c >= 0 && c < 11172 ? CHO[Math.floor(c / 588)] : '#'; };
+  const telAv = size => `<div class="tav" style="width:${size}px;height:${size}px"><svg viewBox="0 0 24 24"><path d="M12 12.4a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2zM4.5 21c.4-4 3.4-6.2 7.5-6.2s7.1 2.2 7.5 6.2z"/></svg></div>`;
+
+  const PHONE_PATH = 'M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z';
+  const tsv = inner => `<svg viewBox="0 0 24 24">${inner}</svg>`;
+  const TEL_TABS = [
+    ['favorites', tsv('<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8z"/>'), '즐겨찾기'],
+    ['recents',   tsv('<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/>'), '최근 통화'],
+    ['contacts',  tsv('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="2.8"/><path d="M6.5 18c1.4-2.3 3.4-3.2 5.5-3.2s4.1.9 5.5 3.2"/>'), '연락처'],
+    ['keypad',    tsv('<g fill="currentColor" stroke="none"><circle cx="6" cy="4.5" r="1.5"/><circle cx="12" cy="4.5" r="1.5"/><circle cx="18" cy="4.5" r="1.5"/><circle cx="6" cy="9.5" r="1.5"/><circle cx="12" cy="9.5" r="1.5"/><circle cx="18" cy="9.5" r="1.5"/><circle cx="6" cy="14.5" r="1.5"/><circle cx="12" cy="14.5" r="1.5"/><circle cx="18" cy="14.5" r="1.5"/><circle cx="12" cy="19.5" r="1.5"/></g>'), '키패드'],
+    ['voicemail', tsv('<circle cx="7.5" cy="12" r="3.5"/><circle cx="16.5" cy="12" r="3.5"/><path d="M7.5 15.5h9"/>'), '음성 메시지']
   ];
-  let photoIndex = 0;
-  let photoTouchX = null;
+  const KP_KEYS = [['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['*',''],['0','+'],['#','']];
+  const TEL_IDX = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','#'];
 
-  function renderPhotoGrid() {
-    $('phgrid').innerHTML = photoLibrary.map((p, i) =>
-      `<div class="pcell" data-photo-index="${i}"><img src="${p.file}" alt="${p.date}" loading="lazy" onerror="this.parentNode.remove()"></div>`
-    ).join('');
-    $('phcount').textContent = `${photoLibrary.length}장`;
-    if (!photoLibrary.length) {
-      $('phgrid').innerHTML = '<div class="phempty">사진 목록이 비어 있어요.</div>';
-      $('phcount').textContent = '';
+  let telTab = 'contacts', telDial = '', telRecents = [], telRecAll = true, callActive = null;
+
+  const telClock = () => new Date().toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const telFmt = d => d.length <= 3 ? d : d.length <= 7 ? d.slice(0, 3) + '-' + d.slice(3) : d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+  const telDisp = d => /[*#+]/.test(d) ? d : telFmt(d);
+  const telNav = (l, m, r) => `<div class="tnav"><span>${l}</span>${m}<span>${r}</span></div>`;
+
+  function renderTel() {
+    let h = '';
+    if (telTab === 'contacts') {
+      let last = '';
+      const rows = telContacts.map((c, i) => {
+        const k = telInitial(c.name);
+        const head = k !== last ? `<div class="tsec">${k}</div>` : '';
+        last = k;
+        return head + `<div class="trow" data-ci="${i}">${TEL_ROW_PHOTOS ? telAv(34) : ''}<span class="rb">${c.name}</span></div>`;
+      }).join('');
+      h = telNav('그룹', '', '<span class="plus">＋</span>') +
+        `<div class="ttitle">연락처</div>` +
+        `<div class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>검색</div>` +
+        `<div class="tmy">${telAv(54)}<div><b>문하나</b><small>내 카드</small></div></div>` + rows;
+    } else if (telTab === 'recents') {
+      const list = telRecAll ? telRecents : [];
+      const rows = list.map((r, i) =>
+        `<div class="trow" data-rc="${i}"><div class="rb"><div>${r.name}</div>` +
+        `<small><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>휴대전화</small></div>` +
+        `<span class="rt">${r.time}</span><span class="ri">ⓘ</span></div>`).join('');
+      h = telNav('편집', `<div class="tseg"><b class="${telRecAll ? 'on' : ''}" data-f="all">전체</b><b class="${telRecAll ? '' : 'on'}" data-f="missed">부재중</b></div>`, '<span style="visibility:hidden">편집</span>') +
+        `<div class="ttitle">최근 통화</div>` + (rows || `<div class="tempty">최근 통화 없음</div>`);
+    } else if (telTab === 'keypad') {
+      h = `<div class="kpwrap"><div class="kpnum">${telDisp(telDial)}</div><div class="kpadd">${telDial ? '번호 추가' : ''}</div><div class="kpgrid">` +
+        KP_KEYS.map(([n, l]) => `<div class="tkey" data-k="${n}"><b>${n}</b><small>${l}</small></div>`).join('') +
+        `<span></span><div class="tkcall"><svg viewBox="0 0 24 24"><path d="${PHONE_PATH}"/></svg></div>` +
+        `<div class="tkdel" style="visibility:${telDial ? 'visible' : 'hidden'}">${tsv('<path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9l-6-7z"/><path d="m13 9.5 5 5M18 9.5l-5 5"/>')}</div></div></div>`;
+    } else if (telTab === 'favorites') {
+      h = telNav('편집', '', '<span class="plus">＋</span>') + `<div class="ttitle">즐겨찾기</div>`;
+    } else {
+      h = telNav('', '', '') + `<div class="ttitle">음성 메시지</div><div class="tempty">음성 메시지 없음</div>`;
     }
+    $('tmain').innerHTML = h;
+    $('tidx').style.display = telTab === 'contacts' ? 'flex' : 'none';
+    $('ttabs').innerHTML = TEL_TABS.map(t => `<div class="ttab${t[0] === telTab ? ' on' : ''}" data-t="${t[0]}">${t[1]}${t[2]}</div>`).join('');
+  }
+  $('tidx').innerHTML = TEL_IDX.map(x => `<span>${x}</span>`).join('');
+
+  function openTel() {
+    tel.classList.add('show');
+    renderTel();
+  }
+  /* 전화 앱 닫기 (통화 중이면 끊고 최근 통화에 남겨요) */
+  function closeTel() {
+    endCall();
+    $('telcard').classList.remove('show');
+    tel.classList.remove('show');
   }
 
-  function openPhotos() {
-    renderPhotoGrid();
-    photos.classList.add('show');
+  /* 전화 걸기: 계속 신호만 가고 상대는 받지 않아요 */
+  function startCall(name) {
+    callActive = { name };
+    const cb = (label, icon, tg) => `<div class="cbi"><div class="cbc"${tg ? ' data-tg="1"' : ''}>${tsv(icon)}</div>${label}</div>`;
+    $('telcall').innerHTML =
+      `<div class="cwho"><div class="cname">${name}</div><div class="cst">전화 거는 중...</div></div>` +
+      `<div class="cgrid">` +
+        cb('소리 끔', '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M4 4l16 16"/>', true) +
+        cb('키패드', '<g fill="#fff" stroke="none"><circle cx="6" cy="5" r="1.7"/><circle cx="12" cy="5" r="1.7"/><circle cx="18" cy="5" r="1.7"/><circle cx="6" cy="11" r="1.7"/><circle cx="12" cy="11" r="1.7"/><circle cx="18" cy="11" r="1.7"/><circle cx="6" cy="17" r="1.7"/><circle cx="12" cy="17" r="1.7"/><circle cx="18" cy="17" r="1.7"/></g>') +
+        cb('스피커', '<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>', true) +
+        cb('통화 추가', '<path d="M12 5v14M5 12h14"/>') +
+        cb('FaceTime', '<rect x="3" y="7" width="12" height="10" rx="2.5"/><path d="m15 11 6-3.5v9L15 13"/>') +
+        cb('연락처', '<circle cx="12" cy="9" r="3.5"/><path d="M5 20c.8-3.6 3.5-5.5 7-5.5s6.2 1.9 7 5.5"/>') +
+      `</div><div class="cend"><svg viewBox="0 0 24 24"><path d="${PHONE_PATH}"/></svg></div>`;
+    $('telcall').classList.add('show');
+  }
+  function endCall() {
+    if (!callActive) return;
+    telRecents.unshift({ name: callActive.name, time: telClock() });
+    callActive = null;
+    $('telcall').classList.remove('show');
+    if (tel.classList.contains('show') && telTab === 'recents') renderTel();
   }
 
-  function showPhoto(index) {
-    if (!photoLibrary.length) return;
-    photoIndex = (index + photoLibrary.length) % photoLibrary.length;
-    const photo = photoLibrary[photoIndex];
-    $('viewerImg').src = photo.file;
-    $('viewerDate').innerHTML = `${photo.date}<small>${photo.time || ''}</small>`;
-    $('viewer').classList.add('show', 'photo-mode');
+  function openTelCard(i) {
+    const c = telContacts[i];
+    const act = (label, inner, filled) => `<div class="tcact"${label === '통화' ? ` data-call="${i}"` : ''}>${filled ? `<svg class="f" viewBox="0 0 24 24">${inner}</svg>` : tsv(inner)}${label}</div>`;
+    $('telcard').innerHTML =
+      `<div class="tnav"><span class="tback" id="tcback">‹ 연락처</span><span>편집</span></div>` +
+      `<div class="tcbody">${telAv(112)}<div class="tcname">${c.name}</div><div class="tcacts">` +
+        act('메시지', '<path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5A8.4 8.4 0 1 1 21 11.5z"/>') +
+        act('통화', `<path d="${PHONE_PATH}"/>`, true) +
+        act('영상 통화', '<rect x="3" y="7" width="12" height="10" rx="2.5"/><path d="m15 11 6-3.5v9L15 13"/>') +
+        act('메일', '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 8 8 5.5L20 8"/>') +
+      `</div><div class="tccard"><small>휴대전화</small><div class="tcnum" data-call="${i}">${c.num}</div></div></div>`;
+    $('telcard').classList.add('show');
   }
 
-  $('phgrid').addEventListener('click', e => {
-    const cell = e.target.closest('.pcell');
-    if (!cell) return;
-    showPhoto(Number(cell.dataset.photoIndex));
+  /* 눌렀을 때 동작 */
+  $('ttabs').addEventListener('click', e => {
+    const t = e.target.closest('.ttab');
+    if (!t) return;
+    telTab = t.dataset.t;
+    $('telcard').classList.remove('show');
+    renderTel();
   });
-  $('photoPrev').addEventListener('click', e => { e.stopPropagation(); showPhoto(photoIndex - 1); });
-  $('photoNext').addEventListener('click', e => { e.stopPropagation(); showPhoto(photoIndex + 1); });
-  $('viewer').addEventListener('touchstart', e => {
-    if (!$('viewer').classList.contains('photo-mode')) return;
-    photoTouchX = e.changedTouches[0].clientX;
-  }, { passive:true });
-  $('viewer').addEventListener('touchend', e => {
-    if (photoTouchX === null || !$('viewer').classList.contains('photo-mode')) return;
-    const dx = e.changedTouches[0].clientX - photoTouchX;
-    photoTouchX = null;
-    if (Math.abs(dx) > 45) showPhoto(photoIndex + (dx < 0 ? 1 : -1));
-  }, { passive:true });
+  $('tmain').addEventListener('click', e => {
+    const k = e.target.closest('.tkey');
+    if (k) { if (telDial.length < 15) telDial += k.dataset.k; renderTel(); return; }
+    if (e.target.closest('.tkdel')) { telDial = telDial.slice(0, -1); renderTel(); return; }
+    if (e.target.closest('.tkcall')) {
+      if (!telDial) return;
+      const c = telContacts.find(x => x.num.replace(/\D/g, '') === telDial);
+      startCall(c ? c.name : telDisp(telDial));
+      return;
+    }
+    const r = e.target.closest('.trow[data-ci]');
+    if (r) { openTelCard(Number(r.dataset.ci)); return; }
+    const rc = e.target.closest('.trow[data-rc]');
+    if (rc) { startCall(telRecents[Number(rc.dataset.rc)].name); return; }
+    const sg = e.target.closest('.tseg b');
+    if (sg) { telRecAll = sg.dataset.f === 'all'; renderTel(); }
+  });
+  $('telcard').addEventListener('click', e => {
+    if (e.target.closest('#tcback')) { $('telcard').classList.remove('show'); return; }
+    const c = e.target.closest('[data-call]');
+    if (c) startCall(telContacts[Number(c.dataset.call)].name);
+  });
+  $('telcall').addEventListener('click', e => {
+    if (e.target.closest('.cend')) { endCall(); return; }
+    const b = e.target.closest('.cbc[data-tg]');
+    if (b) b.classList.toggle('on');
+  });
+  $('dock').addEventListener('click', e => {
+    const a = e.target.closest('.app');
+    if (a && a.dataset.id === 'phone') openTel();
+  });
 
-  /* 인스타그램/사진 앱 하단 홈 표시줄을 누르면 아이폰 기본 홈 화면으로 이동 */
+  /* 인스타그램 앱 하단 홈 표시줄을 누르면 아이폰 기본 홈 화면으로 이동 */
   function returnToPhoneHome() {
+    stopVoice();
     // 열려 있는 앱과 앱 내부 팝업을 모두 닫습니다.
     kakao.classList.remove('show');
     room.classList.remove('show');
     $('kprofile').classList.remove('show');
     insta.classList.remove('show');
-    photos.classList.remove('show');
     $('idm').classList.remove('show');
     $('idmroom').classList.remove('show');
     closeStory();
+    closeTel();
     closeViewer();
     clearInput();
     closeProfiles();
@@ -2794,8 +3240,8 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     home.classList.add('show');
   }
 
-  /* 인스타·사진 앱의 홈 표시줄 (짧게 누르거나 위로 밀면 홈으로) */
-  [$('ihome'), $('phome')].forEach(bar => {
+  /* 인스타·전화 앱의 홈 표시줄 (짧게 누르거나 위로 밀면 홈으로) */
+  [$('ihome'), $('telhome')].forEach(bar => {
     let startYb = null;
     bar.addEventListener('pointerdown', e => { startYb = e.clientY; });
     bar.addEventListener('pointerup', e => {
@@ -2806,6 +3252,47 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     });
     bar.addEventListener('pointercancel', () => { startYb = null; });
   });
+
+  /* =====================================================
+     사진 미리 불러오기: 화면이 열리면 뒤에서 조용히 모든 사진을 받아 둬요.
+     (앱을 열었을 때 사진이 바로 뜨도록. 한 번에 4장씩만 받아서 느려지지 않아요)
+     ===================================================== */
+  (function preloadImages() {
+    const files = new Set();
+    const add = f => { if (f && !/\.mp4$/i.test(f)) files.add(f); };
+
+    ['wallpaper.jpeg', 'flashlight.png', 'camera.png', 'chat.png', 'phone.png', 'hansu.jpg', 'woonhak_wallpaper.jpeg'].forEach(f => add(f));
+    apps.concat(dockApps).forEach(a => add(a.f));
+    friendList.forEach(f => { add(f.f); add(f.bg); });
+    igUsers.forEach(u => add(u.f));
+    igStories.forEach(st => st.slides.forEach(sl => add(sl.f)));
+    igPosts.forEach(po => add(po.f));
+    Object.values(chats).forEach(log => log.forEach(d => d.msgs.forEach(m => add(m.img))));
+    groupChats.forEach(g => g.days.forEach(d => d.msgs.forEach(m => add(m.img))));
+    Object.values(igProfiles).forEach(pr => {
+      (pr.highlights || []).forEach(h => { add(h.cover); (h.slides || []).forEach(sl => add(sl.f)); });
+      ['posts', 'reels', 'tagged'].forEach(k => (pr[k] || []).forEach(po => {
+        add(po.f);
+        (po.imgs || []).forEach(x => add(x));
+      }));
+    });
+
+    loadVoiceDur('um.mp3');
+
+    const queue = [...files];
+    const keep = [];   // 받아 둔 사진이 사라지지 않게 붙잡아 둬요
+    function next() {
+      const f = queue.shift();
+      if (!f) return;
+      const im = new Image();
+      im.onload = im.onerror = next;
+      im.src = f;
+      keep.push(im);
+    }
+    function start() { for (let k = 0; k < 4; k++) next(); }
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start);
+  })();
 </script>
 </body>
 </html>
