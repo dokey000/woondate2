@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>운사연애</title>
-<link rel="preload" as="image" href="woonhak_wallpaper.jpeg">
+<link rel="preload" as="image" href="wallpaper.jpeg">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
   html, body { height: 100%; }
@@ -2373,7 +2373,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
     // 11월 26일 대화에서 내가 '당연하지'를 전송하면 아이폰 배경화면을 운학 사진으로 변경해요.
     if (step.me === W2_ME.r3) {
-      $('phone').style.backgroundImage = "url('woonhak_wallpaper.jpeg')";
+      $('phone').style.backgroundImage = "url('wallpaper.jpeg')";
     }
 
     replies.forEach((t, k) => evWoonLater(k + 1, () => {
@@ -2423,7 +2423,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
      ===================================================== */
   const W2_DATE  = '11월 26일 목요일';
   const W2_FIRST = '누나 이 사진으로 배사해요!!';
-  const W2_PHOTO = 'woonhak_wallpaper.jpeg';
+  const W2_PHOTO = 'wallpaper.jpeg';
 
   const W2_ME = {
     r1: '뭐야 갑자기..?',
@@ -3541,7 +3541,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     const files = new Set();
     const add = f => { if (f && !/\.mp4$/i.test(f)) files.add(f); };
 
-    ['wallpaper.jpeg', 'flashlight.png', 'camera.png', 'chat.png', 'phone.png', 'hansu.jpg', 'woonhak_wallpaper.jpeg'].forEach(f => add(f));
+    ['wallpaper.jpeg', 'flashlight.png', 'camera.png', 'chat.png', 'phone.png', 'hansu.jpg', 'wallpaper.jpeg'].forEach(f => add(f));
     apps.concat(dockApps).forEach(a => add(a.f));
     friendList.forEach(f => { add(f.f); add(f.bg); });
     igUsers.forEach(u => add(u.f));
