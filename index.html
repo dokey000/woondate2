@@ -152,23 +152,31 @@
   .voice .vwave i { display: block; width: 3px; border-radius: 2px; background: #cfcfcf; }
   .voice .vwave i.on { background: #6d6d6d; }
   .voice .vdur { flex: none; font-size: 12px; color: #777; font-variant-numeric: tabular-nums; }
-  .chat-img { display: block; max-width: 200px; max-height: 260px; border-radius: 14px; object-fit: cover; cursor: zoom-in; }
+  .chat-img { display: block; max-width: 200px; max-height: 260px; border-radius: 14px; object-fit: cover; }
   .bub.deleted { color: #888; }
   .del-view { margin-top: 7px; padding-top: 7px; border-top: 1px solid #eee; font-size: 12px; color: #4a7cf7; cursor: pointer; }
   .del-orig { margin-top: 7px; padding-top: 7px; border-top: 1px solid #eee; color: #111; }
 
-  /* ---------- 사진 크게 보기 ---------- */
+  /* ---------- 사진 크게 보기 (아이폰 사진 보기처럼) ---------- */
   #viewer {
     position: absolute; inset: 0; z-index: 40;
-    background: rgba(0,0,0,.94);
-    display: flex; align-items: center; justify-content: center;
-    padding: 90px 12px 40px;   /* 위쪽을 비워 둬서 사진이 상태 표시줄을 가리지 않게 */
+    background: #000; overflow: hidden; touch-action: none;
     opacity: 0; pointer-events: none; transition: opacity .25s ease;
-    cursor: zoom-out;
   }
   #viewer.show { opacity: 1; pointer-events: auto; }
-  #viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .viewer-x { position: absolute; top: 56px; right: 20px; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; z-index: 2; }
+  #viewer .v-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #viewer img { max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center; will-change: transform; -webkit-user-drag: none; }
+  .v-bar {
+    position: absolute; left: 0; right: 0; z-index: 2;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(28,28,30,.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    color: #0a84ff; transition: opacity .2s ease;
+  }
+  .v-bar.hide { opacity: 0; pointer-events: none; }
+  .v-top { top: 0; height: 96px; padding: 50px 18px 0; }
+  .v-bot { bottom: 0; height: 84px; padding: 0 30px 22px; }
+  .v-done { font-size: 17px; font-weight: 600; padding: 6px 4px; }
+  .v-bot svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .m i { font-style: normal; font-size: 10px; color: #4b5b6a; white-space: nowrap; }
   .sp { flex: none; width: 38px; }
 
@@ -605,7 +613,7 @@
   /* ===== 상태 표시줄 글자색 (맨 아래에 둬야 앞쪽 규칙을 덮어써요) ===== */
   .phone:has(#insta.show) .status-bar { color: #111; }
   .phone:has(#story.show) .status-bar { color: #fff; }
-  .phone:has(#viewer.show) .status-bar { color: #fff; }
+  .phone:has(#viewer.show) .status-bar { color: #fff !important; }
   .phone:has(#tel.show) .status-bar { color: #000; }
   .phone:has(#telcall.show) .status-bar { color: #fff; }
 
@@ -643,8 +651,16 @@
 .nb-badge { margin-left:auto; padding:4px 9px; border-radius:10px; background:#e9f9ef; color:#03a94d; font-size:11px; font-weight:700; }
 .nb-card h3 { margin-top:13px; font-size:18px; line-height:1.35; font-weight:700; letter-spacing:-.5px; }
 .nb-card p { margin-top:6px; font-size:14px; line-height:1.5; color:#55555e; white-space:pre-line; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.nb-thumb { margin-top:12px; width:100%; aspect-ratio:16/10; border-radius:14px; background:#f1f1f4; overflow:hidden; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:11px; }
+.nb-card p.open { display:block; -webkit-line-clamp:unset; overflow:visible; }
+.nb-more { display:none; margin-top:4px; font-size:13px; font-weight:600; color:#03a94d; cursor:pointer; }
+.nb-more.show { display:inline-block; }
+.nb-thumb { margin-top:12px; width:100%; aspect-ratio:1/1; border-radius:14px; background:#f1f1f4; overflow:hidden; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:11px; }
 .nb-thumb img { width:100%; height:100%; object-fit:cover; }
+.nb-thumb.multi { display:block; position:relative; }
+.nb-slides { display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; cursor:grab; }
+.nb-slides::-webkit-scrollbar { display:none; }
+.nb-slide { flex:none; width:100%; height:100%; scroll-snap-align:center; display:flex; align-items:center; justify-content:center; }
+.nb-count { position:absolute; top:10px; right:10px; padding:3px 9px; border-radius:12px; background:rgba(0,0,0,.55); color:#fff; font-size:12px; font-weight:600; pointer-events:none; }
 .nb-acts { display:flex; align-items:center; gap:18px; margin-top:12px; padding-top:2px; color:#6b6b74; font-size:12px; }
 .nb-acts span { display:flex; align-items:center; gap:5px; }
 .nb-acts svg { width:21px; height:21px; }
@@ -736,8 +752,14 @@
 
     <!-- 사진 크게 보기 (채팅 속 사진을 누르면 열리고, 아무 데나 누르면 닫혀요) -->
     <div id="viewer">
-      <img id="viewerImg" alt="">
-      <span class="viewer-x" id="viewerClose">✕</span>
+      <div class="v-stage"><img id="viewerImg" alt="" draggable="false"></div>
+      <div class="v-bar v-top" id="vTop"><span class="v-done" id="viewerClose">완료</span></div>
+      <div class="v-bar v-bot" id="vBot">
+        <svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M7 10H5.5A1.5 1.5 0 0 0 4 11.5v8A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 20.5s-8-4.8-8-10.6A4.6 4.6 0 0 1 8.6 5.3c1.5 0 2.7.8 3.4 1.9.7-1.1 1.9-1.9 3.4-1.9A4.6 4.6 0 0 1 20 9.9c0 5.8-8 10.6-8 10.6z"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.2"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l.8 12.5h9.4L17.5 7M10 11v5.5M14 11v5.5"/></svg>
+      </div>
     </div>
 
     <!-- 카카오톡 -->
@@ -842,8 +864,8 @@
     <!-- 네이버 블로그 앱 -->
     <div id="blog">
       <div class="nb-head">
-        <span class="nb-logo"><i>N</i>블로그</span>
-        <span class="nb-head-title" id="nbHeadTitle">블로그</span>
+        <span class="nb-logo"><i>N</i>Blog</span>
+        <span class="nb-head-title" id="nbHeadTitle">Blog</span>
         <div class="nb-head-icons">
           <span id="nbSearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
           <span id="nbNotice"><svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15l1.5-2z"/><path d="M10 21.5h4"/></svg></span>
@@ -883,8 +905,6 @@
     <div class="layer" id="lock">
       <div class="time shadow" id="time">00:00</div>
       <div class="date shadow" id="date"></div>
-      <div class="qbtn left"><img src="flashlight.png" alt=""></div>
-      <div class="qbtn right"><img src="camera.png" alt=""></div>
       <div class="hint shadow" id="hint">열어서 잠금 해제</div>
     </div>
 
@@ -1315,7 +1335,7 @@
           { me: false, t: '네! 저 면접 볼 때 누나가 안내해줬어서 학생회인 줄 알았어요 들어오니까 안 계시더라고요😢', time: '16:51' },
           { me: true, t: '그때 인원 펑크나서 대신 채운 거였어', time: '16:51' },
           { me: true, t: '너 오전 타임 면접이었어??', time: '16:51' },
-          { me: false, t: '넵! 그 떄 저 응원해주셔서 붙은 거 같슴다', time: '16:56' },
+          { me: false, t: '넵! 그때 저 응원해주셔서 붙은 거 같슴다', time: '16:56' },
           { me: false, t: '핫팩 쥐어주시면서', time: '16:56' },
           { me: false, t: '잘할 수 있을 거라고 해주셨어요', time: '16:56' },
           { me: true, t: 'ㅋㅋㅋ이번 주 밥 사달라고 하는거야?', time: '16:58' },
@@ -1893,17 +1913,188 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
     const img = e.target.closest('.chat-img');
     if (!img) return;
-    $('viewerImg').src = img.src;
-    $('viewer').classList.add('show');
-  });
-  $('viewerClose').addEventListener('click', e => { e.stopPropagation(); closeViewer(); });
-  $('viewer').addEventListener('click', e => {
-    if (e.target === $('viewer') || e.target === $('viewerClose')) closeViewer();
+    openViewer(img.src, img);
   });
 
-  function closeViewer() {
-    $('viewer').classList.remove('show');
+
+  /* =====================================================
+     사진 크게 보기 — 아이폰 사진 보기처럼 동작해요
+     · 누른 사진 자리에서 쑥 커지면서 열려요
+     · 한 번 톡 누르면 위·아래 바가 사라졌다 나타나요
+     · 두 번 톡 누르면 확대/원래대로, 두 손가락으로 벌리면 확대
+     · 아래(위)로 쓸어내리면 사진이 따라오다가 닫혀요
+     ===================================================== */
+  const viewer = $('viewer'), vImg = $('viewerImg'), vTop = $('vTop'), vBot = $('vBot');
+  let vFrom = null, vScale = 1, vX = 0, vY = 0, vClosing = false, vChrome = true;
+  const vPts = new Map();
+  let vG = null, vLastTap = 0, vTapTimer = null;
+
+  const vApply = () => { vImg.style.transform = `translate(${vX}px, ${vY}px) scale(${vScale})`; };
+  const vSmooth = (ms = 260) => {
+    vImg.style.transition = `transform ${ms}ms cubic-bezier(.2,.8,.2,1)`;
+    setTimeout(() => { vImg.style.transition = ''; }, ms + 30);
+  };
+  const vChromeSet = on => {
+    vChrome = on;
+    vTop.classList.toggle('hide', !on);
+    vBot.classList.toggle('hide', !on);
+  };
+  const vBg = a => { viewer.style.background = a >= 1 ? '' : `rgba(0,0,0,${a})`; };
+  const vLimit = () => {            // 확대했을 때 사진이 화면 밖으로 너무 나가지 않게
+    const mx = Math.max(0, (vImg.offsetWidth * vScale - viewer.clientWidth) / 2);
+    const my = Math.max(0, (vImg.offsetHeight * vScale - viewer.clientHeight) / 2);
+    vX = Math.min(mx, Math.max(-mx, vX));
+    vY = Math.min(my, Math.max(-my, vY));
+  };
+
+  function openViewer(src, fromEl) {
+    vFrom = fromEl || null;
+    vClosing = false;
+    vImg.getAnimations().forEach(a => a.cancel());
+    vScale = 1; vX = 0; vY = 0; vApply(); vBg(1);
+    vChromeSet(true);
+    vImg.onload = null;
+    const go = () => {
+      vImg.onload = null;
+      viewer.classList.add('show');
+      if (vFrom && vFrom.isConnected) {            // 누른 사진 자리에서 커지는 효과
+        const a = vFrom.getBoundingClientRect(), b = vImg.getBoundingClientRect();
+        if (a.width && b.width) {
+          const dx = (a.left + a.width / 2) - (b.left + b.width / 2);
+          const dy = (a.top + a.height / 2) - (b.top + b.height / 2);
+          vImg.animate(
+            [{ transform: `translate(${dx}px, ${dy}px) scale(${a.width / b.width})` },
+             { transform: 'translate(0px, 0px) scale(1)' }],
+            { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
+        }
+      }
+    };
+    vImg.src = src;
+    if (vImg.complete && vImg.naturalWidth) go(); else vImg.onload = go;
   }
+
+  /* 바로 닫기 (홈으로 갈 때처럼 효과 없이) */
+  function closeViewer() {
+    viewer.classList.remove('show');
+    vImg.getAnimations().forEach(a => a.cancel());
+    vClosing = false; vScale = 1; vX = 0; vY = 0; vApply(); vBg(1);
+    clearTimeout(vTapTimer);
+  }
+
+  /* 사진이 작아지며 원래 자리로 돌아가면서 닫기 */
+  function dismissViewer() {
+    if (!viewer.classList.contains('show') || vClosing) return;
+    vClosing = true;
+    vChromeSet(false);
+    viewer.style.background = '';
+    viewer.classList.remove('show');               // 배경이 서서히 사라져요
+    const cur = vImg.getBoundingClientRect();
+    if (vFrom && vFrom.isConnected && cur.width) {
+      const a = vFrom.getBoundingClientRect();
+      const cx = cur.left + cur.width / 2 - vX, cy = cur.top + cur.height / 2 - vY, w0 = cur.width / vScale;
+      vImg.animate(
+        [{ transform: `translate(${vX}px, ${vY}px) scale(${vScale})` },
+         { transform: `translate(${a.left + a.width / 2 - cx}px, ${a.top + a.height / 2 - cy}px) scale(${a.width / w0})` }],
+        { duration: 280, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'forwards' });
+    }
+    setTimeout(closeViewer, 300);
+  }
+
+  $('viewerClose').addEventListener('click', dismissViewer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissViewer(); });
+
+  viewer.addEventListener('pointerdown', e => {
+    if (vClosing || e.target.closest('.v-bar')) return;
+    viewer.setPointerCapture(e.pointerId);
+    vPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    vImg.style.transition = '';
+    if (vPts.size === 1) {
+      vG = { mode: 'tap', sx: e.clientX, sy: e.clientY, ox: vX, oy: vY, t: Date.now(), chrome: vChrome, last: null };
+    } else if (vPts.size === 2) {
+      const [p, q] = [...vPts.values()];
+      const r = viewer.getBoundingClientRect();
+      vG = { mode: 'pinch', d0: Math.hypot(p.x - q.x, p.y - q.y) || 1, s0: vScale, x0: vX, y0: vY,
+             mx0: (p.x + q.x) / 2 - r.left - r.width / 2, my0: (p.y + q.y) / 2 - r.top - r.height / 2 };
+    }
+  });
+
+  viewer.addEventListener('pointermove', e => {
+    if (!vPts.has(e.pointerId) || !vG) return;
+    vPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (vG.mode === 'pinch' && vPts.size >= 2) {
+      const [p, q] = [...vPts.values()];
+      const r = viewer.getBoundingClientRect();
+      const s = Math.min(5, Math.max(1, vG.s0 * (Math.hypot(p.x - q.x, p.y - q.y) / vG.d0)));
+      const mx = (p.x + q.x) / 2 - r.left - r.width / 2, my = (p.y + q.y) / 2 - r.top - r.height / 2;
+      vX = mx - (vG.mx0 - vG.x0) * (s / vG.s0);
+      vY = my - (vG.my0 - vG.y0) * (s / vG.s0);
+      vScale = s; vApply();
+      return;
+    }
+    if (vPts.size !== 1) return;
+
+    const dx = e.clientX - vG.sx, dy = e.clientY - vG.sy;
+    if (vG.mode === 'tap' && Math.hypot(dx, dy) > 8) {
+      vG.mode = vScale > 1.02 ? 'pan' : (Math.abs(dy) >= Math.abs(dx) ? 'drag' : 'none');
+      if (vG.mode === 'drag') vChromeSet(false);
+    }
+    vG.last = { dy, t: Date.now() };
+    if (vG.mode === 'pan') {
+      vX = vG.ox + dx; vY = vG.oy + dy; vApply();
+    } else if (vG.mode === 'drag') {
+      vX = dx; vY = dy;
+      const k = Math.min(1, Math.abs(dy) / 360);
+      vScale = 1 - k * 0.25; vApply();
+      vBg(1 - k * 0.85);
+    }
+  });
+
+  const vEnd = e => {
+    if (!vPts.has(e.pointerId)) return;
+    vPts.delete(e.pointerId);
+    if (!vG) return;
+    const g = vG;
+
+    if (g.mode === 'pinch') {
+      if (vPts.size < 2) {
+        vG = null; vPts.clear();
+        vSmooth();
+        if (vScale < 1.05) { vScale = 1; vX = 0; vY = 0; } else vLimit();
+        vApply();
+      }
+      return;
+    }
+    vG = null;
+
+    if (g.mode === 'drag') {
+      const fast = g.last && (Math.abs(g.last.dy) > 70 && Date.now() - g.t < 350);
+      if (Math.abs(vY) > 110 || fast) { dismissViewer(); return; }
+      vSmooth(); vScale = 1; vX = 0; vY = 0; vApply(); vBg(1);
+      if (g.chrome) vChromeSet(true);
+    } else if (g.mode === 'pan') {
+      vSmooth(); vLimit(); vApply();
+    } else if (g.mode === 'tap') {
+      const now = Date.now();
+      if (now - vLastTap < 300) {                       // 두 번 톡 → 확대 / 원래대로
+        clearTimeout(vTapTimer); vLastTap = 0;
+        const r = viewer.getBoundingClientRect();
+        vSmooth();
+        if (vScale > 1.05) { vScale = 1; vX = 0; vY = 0; }
+        else {
+          const px = e.clientX - r.left - r.width / 2, py = e.clientY - r.top - r.height / 2;
+          vScale = 2.5; vX = -px * 1.5; vY = -py * 1.5; vLimit();
+        }
+        vApply();
+      } else {                                          // 한 번 톡 → 바 보이기/숨기기
+        vLastTap = now;
+        clearTimeout(vTapTimer);
+        vTapTimer = setTimeout(() => { vLastTap = 0; vChromeSet(!vChrome); }, 280);
+      }
+    }
+  };
+  viewer.addEventListener('pointerup', vEnd);
+  viewer.addEventListener('pointercancel', vEnd);
 
   $('ktabs').addEventListener('click', e => {
     const t = e.target.closest('.ktab.act');
@@ -2000,13 +2191,25 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   let blogAccepted = false;
   let blogRequestPage = false;
   let blogEventStarted = false;
+  let nbDragged = false;   // 마우스로 사진을 끌어 넘긴 직후에는 '크게 보기'가 열리지 않게 해요
 
   // 이 배열의 제목/날짜/본문/사진 파일명을 바꾸면 김운학의 과거 블로그 글이 수정됩니다.
   const woonhakBlogPosts = [
-    { date:'2026. 11. 26.', category:'일상', title:'요즘', image:'woonhak_blog_01.jpg', text:'요즘은 별거 아닌 일상도 기록해 두고 싶다.\n날씨가 좋아서 기분이 조금 나아졌다.' },
-    { date:'2026. 11. 20.', category:'일상', title:'산책', image:'woonhak_blog_02.jpg', text:'오랜만에 천천히 걸었다. 생각보다 괜찮았던 하루.' },
-    { date:'2026. 11. 12.', category:'기록', title:'11월의 기록', image:'woonhak_blog_03.jpg', text:'바쁘게 지나가는 중. 나중에 보면 다 추억이겠지.' },
-    { date:'2026. 10. 30.', category:'일상', title:'가을 끝자락', image:'woonhak_blog_04.jpg', text:'가을 사진 몇 장 남겨두기.' }
+    { date:'2026. 11. 26.', category:'일상', title:'어렵다', images:['jul.jpeg', 'haa.jpg'], text:'한 수 배우러 갔다왔음 어렵다,,' },
+    { date:'2026. 11. 16.', category:'일상', title:'아.. 어지러', image:'ice.jpeg', text:'눈뜨니 집.. 숙취 에바\n어제 누나가 데리고 왔다는데 실수한 거 없겠지ㅜㅡㅜ?\n뭔가 더 있는 거 같은데 누나가 말을 안해주네' },
+    { date:'2026. 11. 4.', category:'일상', title:'탈출', images:['in.jpg', 'es.jpg'], text:'누나랑 재현이 형이랑 방탈출~ \n 목 쉴만큼 소리 지름...;;\n저녁까지 같이 있고 싶었는데 .. 🥲' },
+    { date:'2026. 10. 22.', category:'일상', title:'🐹', image:'tteok.jpeg', text:'동그래서 생각이 났어' },
+    { date:'2026. 8. 10.', category:'일상', title:'HBD TS🎉', images:['ts.jpg','hu.jpg','ts2.jpg'], text:'TS 탄신일을 맞아 무수면 20시간 달려줌' },
+    { date:'2026. 8. 16.', category:'일상', title:'😭', image:'ht.jpg', text:'보고싶다' },
+    { date:'2026. 7. 31.', category:'일상', title:'🐻', image:'br.jpg', text:'나 닮았대' },
+    { date:'2026. 7. 16.', category:'일상', title:'부산', images:['gb.jpg', 'gg.jpg'], text:'동현이 형 맛집 트릭노트 1차 국밥 클리어 \n 2차 고기 ㄱㄱ \n 동현이형 최고 skrrrr' },
+    { date:'2026. 6. 8.', category:'일상', title:'노을', images:['nn.jpg', 'woonn.jpeg'], text:'날씨가 너무 너ㅓ무 좋다 😎 누나랑 좀이따 산책 가기로 함!! ' },
+    { date:'2026. 5. 3.', category:'일상', title:'애햄', image:'hanjung2.jpg', text:'누나 먹는 모습 완전 햄스타🐹' },
+    { date:'2026. 4. 23.', category:'일상', title:'', image:'sam2.jpg', text:'바이럴의 정의와 적용 망... 하나 누나가 꿀교라고 했는데 모르겠고 하나 누나랑 삼쏘 🍾. \n시간이 너무 빨리간다 ' },
+    { date:'2026. 4. 3.', category:'일상', title:'💓💓', image:'woonoufit2.jpg', text:'옷 고르는 데 1시간 넘게 썼다..' },
+    { date:'2026. 03. 26.', category:'일상', title:'오늘도 좋운학루', image:'woonoufit.jpg', text:'짝선후배 명단 떴다…🫠 명선배님 감사합니다🫡\n학교 정문에서📸\n' },
+    { date:'2025. 11. 14.', category:'일상', title:'11월',  image:'su.jpg',text:'자자 현역 고3은 듣도록\n나는 언매 확통 사탐 생윤 한지를 택했으니 따라올 테면 따라와👍🏻' },
+    { date:'2025. 11. 4.', category:'일상', title:'가을 끝자락', image:'hot.jpeg', text:'오늘 수시 마지막 면접 보고 왔다!\n너무 떨렸는데.. 선배님? 안내해주는 누나가 핫팩 주면서 잘할 수 있을거라고!!!!! 기운 주셨다🔥🔥' }
   ];
 
   const NB = {
@@ -2023,13 +2226,20 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   }
 
   function blogPostHTML(post) {
+    /* 사진: images:['a.jpg','b.jpg'] 처럼 여러 장, 또는 image:'a.jpg' 한 장 둘 다 돼요 */
+    const imgs = (post.images && post.images.length) ? post.images : (post.image ? [post.image] : []);
+    const imgTag = f => `<img src="${f}" draggable="false" onerror="this.parentNode.textContent='${f}'">`;
+    const thumb = imgs.length > 1
+      ? `<div class="nb-thumb multi"><div class="nb-slides">${imgs.map(f => `<div class="nb-slide">${imgTag(f)}</div>`).join('')}</div><span class="nb-count">1/${imgs.length}</span></div>`
+      : `<div class="nb-thumb">${imgs.length ? imgTag(imgs[0]) : '사진을 넣어주세요'}</div>`;
     return `<article class="nb-card">
       <div class="nb-author">${blogAvatar('김운학','Woonhak.jpeg')}
         <div class="nb-author-info"><b>김운학</b><small>${post.date} · ${post.category}</small></div>
         <span class="nb-badge">서로이웃</span></div>
       <h3>${post.title}</h3>
       <p>${post.text}</p>
-      <div class="nb-thumb">${post.image ? `<img src="${post.image}" onerror="this.parentNode.textContent='${post.image}'">` : '사진을 넣어주세요'}</div>
+      <span class="nb-more">더보기</span>
+      ${thumb}
       <div class="nb-acts"><span>${NB.heart}공감</span><span>${NB.comment}댓글</span><span>${NB.share}</span><span class="r">${NB.mark}</span></div>
     </article>`;
   }
@@ -2085,6 +2295,55 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
       blogTab = el.dataset.nbquick;
       renderBlog();
     }));
+
+    /* 글이 길어서 잘리면 '더보기'를 보여주고, 글이나 '더보기'를 누르면 전체가 펼쳐져요 */
+    main.querySelectorAll('.nb-card').forEach(card => {
+      const txt = card.querySelector('p'), more = card.querySelector('.nb-more');
+      if (!txt || !more) return;
+      if (txt.scrollHeight > txt.clientHeight + 1) more.classList.add('show');
+      const toggle = () => {
+        const open = txt.classList.toggle('open');
+        more.textContent = open ? '접기' : '더보기';
+        more.classList.add('show');
+      };
+      txt.addEventListener('click', toggle);
+      more.addEventListener('click', toggle);
+    });
+
+    /* 여러 장 사진: 옆으로 밀면 넘어가고 오른쪽 위 숫자(1/3)가 바뀌어요. (마우스는 끌어서 넘겨요) */
+    main.querySelectorAll('.nb-thumb.multi').forEach(box => {
+      const sl = box.querySelector('.nb-slides'), cnt = box.querySelector('.nb-count');
+      const n = sl.children.length;
+      sl.addEventListener('scroll', () => {
+        cnt.textContent = (Math.round(sl.scrollLeft / sl.clientWidth) + 1) + '/' + n;
+      });
+      let dx0 = null, sx0 = 0;
+      sl.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse') return;
+        nbDragged = false;
+        dx0 = e.clientX; sx0 = sl.scrollLeft;
+        sl.style.scrollSnapType = 'none'; sl.style.cursor = 'grabbing';
+      });
+      window.addEventListener('pointermove', e => {
+        if (dx0 === null) return;
+        if (Math.abs(e.clientX - dx0) > 5) nbDragged = true;
+        sl.scrollLeft = sx0 - (e.clientX - dx0);
+      });
+      window.addEventListener('pointerup', () => {
+        if (dx0 === null) return;
+        dx0 = null;
+        sl.style.cursor = '';
+        const i = Math.round(sl.scrollLeft / sl.clientWidth);
+        sl.scrollTo({ left: i * sl.clientWidth, behavior: 'smooth' });
+        setTimeout(() => { sl.style.scrollSnapType = ''; }, 350);
+      });
+    });
+
+    /* 블로그 사진을 누르면 크게 보기 (채팅 사진과 같은 화면, 아무 데나 누르면 닫혀요) */
+    main.querySelectorAll('.nb-thumb img').forEach(img => img.addEventListener('click', () => {
+      if (nbDragged) { nbDragged = false; return; }
+      openViewer(img.src, img);
+    }));
   }
 
   function openBlog() {
@@ -2109,7 +2368,6 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     $('idmroom').classList.remove('show');
     closeStory(); closeTel(); closeViewer(); closeProfiles();
     $('kprofile').classList.remove('show');
-    home.classList.remove('show');
     $('blog').classList.add('show');
     blogRequestPage = false;
     blogTab = 'notice';
@@ -2345,8 +2603,11 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     r2c: '말한 거 말곤 없어',
     r3a: '숙취해소스틱 맛있다고',
     r3b: '박스째로 먹으려던 거 겨우 말림',
-    r4:  '너 11/28에 뭐해?',
-    r5:  '그때 사줘'
+    r4:  '또 있긴한데',
+    r5:  '그건 나만 알고 있을래',
+    r6a:  '나중에 너 기억나면',
+    r6b:  '그때 말해줘',
+    r7:  '그래'
   };
 
   /* 대화 순서표: me = 내가 보낼 말, reply = 그걸 보내면 2초 간격으로 오는 김운학의 말
@@ -2354,14 +2615,17 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
      ★ reply 가 없으면 바로 다음 내 말이 이어서 타이핑돼요. */
   const W_FLOW = [
     { me: W_ME.r1a },
-    { me: W_ME.r1b, reply: ['누나 무거웠을 텐데 미안해요 ㅠㅠㅠ', '혹시 저 실수한 거 없었어요?'] },
+    { me: W_ME.r1b, reply: ['무거웠을 텐데 미안해요 ㅠㅠㅠ', '혹시 저 실수한 거 없었어요?'] },
     { me: W_ME.r2a },
     { me: W_ME.r2b },
     { me: W_ME.r2c, reply: ['🤦🏻‍♂️.. 그거 말곤 없죠..???'] },
     { me: W_ME.r3a },
-    { me: W_ME.r3b, reply: ['누나... 제발 밥 살게요'] },
-    { me: W_ME.r4,  reply: ['아무것도 없어요!!'] },
-    { me: W_ME.r5,  reply: ['넵!!'] }
+    { me: W_ME.r3b, reply: ['아.......'] },
+    { me: W_ME.r4,  reply: ['뭐예요???? 제가 또 무슨짓을'] },
+    { me: W_ME.r5,  reply: ['ㅜㅠ???', '진짜 뭐예요 ㅠㅠ????', '저 오늘 잠 못 자요 ㅜㅠㅜ'] },
+    { me: W_ME.r6a },
+    { me: W_ME.r6b,  reply: ['ㅜㅡㅜ 알겠어요', '그러니까 그때 진짜 말해줘야 돼요?'] },
+    { me: W_ME.r7 },
   ];
   let evWoonStep = -1;      // 지금 타이핑될 차례인 순서표 번호 (-1 = 답장 기다리는 중/끝)
   let evFlowSteps = [];     // 지금 진행 중인 순서표 (W_FLOW 또는 W2_FLOW)
@@ -2559,6 +2823,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   /* 알림 또는 잠금해제 후 → 김운학 채팅방으로 이동 */
   function goEventRoom() {
     hideBanner();
+    $('blog').classList.remove('show');
     insta.classList.remove('show');
     $('idm').classList.remove('show');
     $('idmroom').classList.remove('show');
@@ -2574,6 +2839,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   }
 
   function openMyungStoryFromBanner() {
+    $('blog').classList.remove('show');
     kakao.classList.remove('show');
     room.classList.remove('show');
     $('idm').classList.remove('show');
@@ -2612,6 +2878,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
       openPass();
     } else if (bannerTargetName === '명재현') {
       hideBanner();
+      $('blog').classList.remove('show');
       insta.classList.remove('show');
       $('idm').classList.remove('show');
       $('idmroom').classList.remove('show');
@@ -3091,8 +3358,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   $('dmbody').addEventListener('click', e => {
     const img = e.target.closest('.chat-img');
     if (!img) return;
-    $('viewerImg').src = img.src;
-    $('viewer').classList.add('show');
+    openViewer(img.src, img);
   });
 
   function openInsta() {
@@ -3587,6 +3853,8 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
       }));
     });
 
+    woonhakBlogPosts.forEach(po => { add(po.image); (po.images || []).forEach(add); });
+
     loadVoiceDur('um.mp3');
 
     const queue = [...files];
@@ -3603,6 +3871,19 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     if (document.readyState === 'complete') start();
     else window.addEventListener('load', start);
   })();
+
+  /* =====================================================
+     ★ 테스트용 바로가기: 주소 뒤에 ?blog 를 붙이면
+     잠금을 건너뛰고 블로그 '서로이웃 신청' 알림 화면이 바로 열려요.
+     예) index.html?blog   (평소 주소에는 아무 영향 없어요)
+     ===================================================== */
+  if (new URLSearchParams(location.search).has('blog')) {
+    blogRequestReceived = true;       // 서이추 신청이 이미 온 상태로 만들기
+    evOpenBlogAfterUnlock = true;     // 잠금 해제 직후 블로그 알림 화면 열기
+    openPass();
+    entry = PASSCODE;
+    check();
+  }
 </script>
 </body>
 </html>
