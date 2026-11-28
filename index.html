@@ -2667,7 +2667,7 @@ const thumb = imgs.length === 0
     { me: W_ME.r4,  reply: ['뭐예요???? 제가 또 무슨짓을'] },
     { me: W_ME.r5,  reply: ['ㅜㅠ???', '진짜 뭐예요 ㅠㅠ????', '저 오늘 잠 못 자요 ㅜㅠㅜ'] },
     { me: W_ME.r6a },
-    { me: W_ME.r6b,  reply: ['ㅜㅡㅜ 알겠어요', '그러니까 그때 진짜 말해줘야 돼요?'] },
+    { me: W_ME.r6b,  reply: ['ㅜㅡㅜ 알겠어요', '그러면 그때 진짜 말해줘야 돼요?'] },
     { me: W_ME.r7 },
   ];
   let evWoonStep = -1;      // 지금 타이핑될 차례인 순서표 번호 (-1 = 답장 기다리는 중/끝)
@@ -2879,9 +2879,10 @@ const thumb = imgs.length === 0
   /* ★ 29일 저녁, '저 기억났어요' 카톡이 오기 전에 올라오는 블로그 글 (내용·제목·사진은 여기서 고치세요) */
   const W5_BLOG = {
     date: '2026. 11. 29.', category: '일상', title: '.',
-    text: '기억났다. 오늘 꼭 말해야겠다.'
+    text: '기억났다. 이제 고민 그만하고 말해야겠다.'
   };
-  const EV_BLOG_TO_KAKAO_MS = waitMs(45000);   // 블로그 글이 올라오고 카톡이 오기까지
+  const EV_FINAL_MS = 3000;   // ★ '기억났다' 이후의 모든 이벤트 간격 (3초, 빠른 테스트 모드와 상관없이 고정)
+  const EV_BLOG_TO_KAKAO_MS = EV_FINAL_MS;   // 블로그 글이 올라오고 카톡이 오기까지
 
   function ev29EveArrive() {
     if (!woonhakBlogPosts.includes(W5_BLOG)) woonhakBlogPosts.unshift(W5_BLOG);
@@ -2896,7 +2897,7 @@ const thumb = imgs.length === 0
     /* 같은 29일 대화 안에 이어서 붙여요 (날짜 줄이 두 번 나오지 않게) */
     if (!evDay29) evDay29 = { date: D29, msgs: [] };
     W5_FIRST.forEach(t => evDay29.msgs.push({ me: false, t, time: '19:38' }));
-    evFlowStart(evDay29, W5_FLOW, () => evTimers.push(setTimeout(evIncomingCall, waitMs(12000))));
+    evFlowStart(evDay29, W5_FLOW, () => evTimers.push(setTimeout(evIncomingCall, EV_FINAL_MS)));
     evFlowShow(W5_FIRST[W5_FIRST.length - 1]);
   }
 
@@ -2952,7 +2953,7 @@ const thumb = imgs.length === 0
     if (callAudio) { callAudio = null; }
     incallState = null;
     $('incall').classList.remove('show');
-    evTimers.push(setTimeout(evIncomingCall, waitMs(8000)));
+    evTimers.push(setTimeout(evIncomingCall, EV_FINAL_MS));
   }
 
   function incallAnswer() {
