@@ -2147,13 +2147,13 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
 
   /* =====================================================
      ★★★ 삭제된 메시지 이벤트 (김운학 · 11월 5일) ★★★
-     HTML을 연 지 3분 뒤에:
+     HTML을 연 지 5분 뒤에:
        1) 위에 알림이 떠요 (삭제되기 전 원래 메시지가 보여요)
        2) 채팅방에 들어가면 '삭제된 메시지입니다.' 4개가 떠 있고,
           입력창에 '삭제된 메시지 뭐야?' 가 타이핑돼요 → ➤ 누르면 전송
        3) 전송 2초 뒤 김운학 답장 1번째, 또 2초 뒤 2번째
        4) 입력창에 '오키' 가 타이핑돼요 → ➤ 누르면 전송
-     ★ 테스트용: 주소 뒤에 ?fast 를 붙이면 3분 대신 5초 뒤에 시작해요.
+     ★ 테스트용: 주소 뒤에 ?fast 를 붙이면 5분 대신 5초 뒤에 시작해요.
         예) index.html?fast
      ===================================================== */
   /* ★ 테스트용 스위치: true 로 바꾸면 이벤트 기다리는 시간이 전부 5초로 줄어요. (확인 끝나면 false 로!)
@@ -2161,15 +2161,15 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   const FAST_TEST = false;
   const waitMs = ms => (FAST_TEST || location.search.includes('fast')) ? 5000 : ms;
 
-  const EVENT_DELAY_MS = waitMs(180000);  // 3분 (처음 화면을 둘러보고 상황을 파악할 시간)
+  const EVENT_DELAY_MS = waitMs(300000);  // 5분 (처음 화면을 둘러보고 상황을 파악할 시간)
   const EV_NAME = '김운학';
   const EV_REPLY_GAP_MS = 3000;     // 답장 사이 간격 (3초)
   const EV_TYPE_MS = 130;           // 한 글자 입력 속도
   const EV_BANNER_STEP_MS = 3000;   // 알림에서 다음 메시지로 바뀌는 간격 (3초)
-  const EV_MJ_DELAY_MS = waitMs(90000); // '오키' 전송 1분 30초 뒤 명재현 메시지
-  const EV_WOON_DELAY_MS = waitMs(90000);   // 명재현 새 스토리(jip.mp4)를 본 뒤 1분 30초
-  const EV_HANSU_DELAY_MS = waitMs(90000);  // 김운학의 마지막 '넵!!' 뒤 1분 30초 → 명재현 스토리 알림(hansu.jpeg)
-  const EV_WOON2_DELAY_MS = waitMs(60000);  // hansu.jpg 스토리를 본 뒤 1분 → 김운학 카톡(26일)
+  const EV_MJ_DELAY_MS = waitMs(60000); // '오키' 전송 1분 뒤 명재현 메시지
+  const EV_WOON_DELAY_MS = waitMs(50000);   // 명재현 새 스토리(jip.mp4)를 본 뒤 50초
+  const EV_HANSU_DELAY_MS = waitMs(50000);  // 김운학의 마지막 '넵!!' 뒤 50초 → 명재현 스토리 알림(hansu.jpeg)
+  const EV_WOON2_DELAY_MS = waitMs(20000);  // hansu.jpg 스토리를 본 뒤 20초 → 김운학 카톡(26일)
   const EV_MJ_STORY_VIDEO = 'myung_story.mp4'; // 같은 폴더에 올릴 명재현 스토리 영상 파일명
 
   /* 삭제된 메시지 4개 (t = 삭제되기 전 원래 내용) */
@@ -2734,12 +2734,12 @@ const thumb = imgs.length === 0
     showKakaoBanner(EV_NAME, bannerText);
   }
 
-  /* 명재현 스토리를 본 1분 30초 뒤: 김운학 카톡 + 알림 (11월 16일) */
+  /* 명재현 스토리를 본 50초 뒤: 김운학 카톡 + 알림 (11월 16일) */
   function evWoonArrive() {
     evFlowStart(
       { date: W_DATE, msgs: [{ me: false, t: W_FIRST, time: nowHM() }] },
       W_FLOW,
-      /* 마지막 '넵!!' 이 오고 1분 30초 뒤 → 명재현 스토리 알림 */
+      /* 마지막 '넵!!' 이 오고 50초 뒤 → 명재현 스토리 알림 */
       () => evTimers.push(setTimeout(evHansuArrive, EV_HANSU_DELAY_MS))
     );
 
@@ -2789,11 +2789,11 @@ const thumb = imgs.length === 0
           { me: false, img: W2_PHOTO, time: nowHM() }
       ] },
       W2_FLOW,
-      /* 26일 대화가 끝나면 1분 뒤 → 27일 '서이추할래요..??' */
+      /* 26일 대화가 끝나면 20초 뒤 → 27일 '서이추할래요..??' */
       () => {
         if (blogEventStarted) return;
         blogEventStarted = true;
-        evTimers.push(setTimeout(evWoonBlog27Arrive, waitMs(60000)));
+        evTimers.push(setTimeout(evWoonBlog27Arrive, waitMs(20000)));
       }
     );
     evFlowShow(W2_FIRST);
@@ -2861,18 +2861,18 @@ const thumb = imgs.length === 0
   function ev28Start() {
     if (evDay28Started) return;
     evDay28Started = true;
-    evTimers.push(setTimeout(ev28Arrive, waitMs(60000)));
+    evTimers.push(setTimeout(ev28Arrive, waitMs(20000)));
   }
 
   function ev28Arrive() {
     const day = { date: D28, msgs: W3_FIRST.map(t => typeof t === 'string' ? ({ me: false, t, time: '17:52' }) : ({ me: false, img: t.img, time: '17:52' })) };
-    evFlowStart(day, W3_FLOW, () => evTimers.push(setTimeout(ev29NightArrive, waitMs(60000))));
+    evFlowStart(day, W3_FLOW, () => evTimers.push(setTimeout(ev29NightArrive, waitMs(20000))));
     evFlowShow(W3_FIRST.filter(t => typeof t === 'string').pop());   // 알림에는 마지막 글이 떠요
   }
 
   function ev29NightArrive() {
     evDay29 = { date: D29, msgs: W4_FIRST.map(t => ({ me: false, t, time: '00:52' })) };
-    evFlowStart(evDay29, W4_FLOW, () => evTimers.push(setTimeout(ev29EveArrive, waitMs(90000))));
+    evFlowStart(evDay29, W4_FLOW, () => evTimers.push(setTimeout(ev29EveArrive, waitMs(10000))));
     evFlowShow(W4_FIRST[W4_FIRST.length - 1]);
   }
 
@@ -3477,13 +3477,13 @@ const thumb = imgs.length === 0
     const s = storyList[sIdx], u = igUsers[s.u], slides = s.slides;
     const sl = slides[sSlide];
 
-    /* 명재현의 새 스토리(jip.mp4)를 보면 1분 30초 뒤 김운학에게 카톡이 와요 */
+    /* 명재현의 새 스토리(jip.mp4)를 보면 50초 뒤 김운학에게 카톡이 와요 */
     if (sl.f === 'jip.mp4' && !evWoonTriggered && evStage >= 9) {
       evWoonTriggered = true;
       evTimers.push(setTimeout(evWoonArrive, EV_WOON_DELAY_MS));
     }
 
-    /* 명재현의 hansu.jpg 스토리를 보면 1분 뒤 김운학에게 카톡이 와요 */
+    /* 명재현의 hansu.jpg 스토리를 보면 20초 뒤 김운학에게 카톡이 와요 */
     if (sl.f === 'hansu.jpg' && !evWoon2Triggered && evStage >= 12) {
       evWoon2Triggered = true;
       evTimers.push(setTimeout(evWoon2Arrive, EV_WOON2_DELAY_MS));
