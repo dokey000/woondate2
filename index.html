@@ -85,12 +85,19 @@
   #home { z-index: 10; padding: 70px 20px 0; opacity: 0; pointer-events: none; transform: scale(1.12); }
   #home.show { opacity: 1; pointer-events: auto; transform: none; }
   .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 0; }
-  .app { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; text-shadow: 0 1px 6px rgba(0,0,0,.5); cursor: pointer; }
+  .app { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; text-shadow: 0 1px 6px rgba(0,0,0,.5); cursor: pointer; }
   .icon {
     position: relative; width: 60px; height: 60px; border-radius: 14px; overflow: hidden;
     background: none; display: flex; align-items: center; justify-content: center;
     font-size: 11px; line-height: 1.2; text-align: center; text-shadow: none;
   }
+  .abadge {
+    position: absolute; top: -7px; left: calc(50% + 19px); z-index: 3;
+    min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 11px;
+    background: #ff3b30; color: #fff; font-size: 14px; font-weight: 600; line-height: 22px; text-align: center;
+    text-shadow: none; pointer-events: none; animation: abadgePop .3s ease;
+  }
+  @keyframes abadgePop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
   .icon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .dock {
     position: absolute; left: 12px; right: 12px; bottom: 14px; height: 92px; border-radius: 30px;
@@ -121,6 +128,9 @@
   .crow .ct { flex: 1; min-width: 0; }
   .crow .cl { margin-top: 3px; font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .crow .tm { align-self: flex-start; padding-top: 4px; font-size: 11px; color: #aaa; }
+  .crow .tr { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; align-self: flex-start; }
+  .crow .tr .tm { align-self: auto; }
+  .crow .ub { min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; background: #ff3b30; color: #fff; font-size: 12px; font-weight: 600; line-height: 20px; text-align: center; }
 
   #kroom { position: absolute; inset: 0; z-index: 4; background: #b2c7da; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .35s ease; }
   #kroom.show { transform: none; }
@@ -952,6 +962,33 @@
   $('grid').innerHTML = apps.map(a => appHTML(a, true)).join('');
   $('dock').innerHTML = dockApps.map(a => appHTML(a, false)).join('');
 
+  /* ===== 앱 아이콘 빨간 배지 (안 본 알림이 있으면 '1' 표시, 앱을 열면 사라져요) ===== */
+  function setBadgeCount(id, n) {
+    if (n <= 0) { clearBadge(id); return; }
+    document.querySelectorAll(`.app[data-id="${id}"]`).forEach(a => {
+      let b = a.querySelector('.abadge');
+      if (!b) {
+        b = document.createElement('span');
+        b.className = 'abadge';
+        a.appendChild(b);
+      }
+      if (b.textContent !== String(n)) b.textContent = n;
+    });
+  }
+  function setBadge(id) {   // 알림이 올 때마다 숫자를 1씩 올려요
+    const b = document.querySelector(`.app[data-id="${id}"] .abadge`);
+    setBadgeCount(id, (b ? Number(b.textContent) : 0) + 1);
+  }
+  function clearBadge(id) {
+    document.querySelectorAll(`.app[data-id="${id}"] .abadge`).forEach(b => b.remove());
+  }
+  function notifyBadge(id) {
+    const open = id === 'kakao' ? kakao.classList.contains('show')
+               : id === 'insta' ? insta.classList.contains('show')
+               : $('blog').classList.contains('show');
+    if (!open) setBadge(id);   // 이미 그 앱을 보고 있으면 배지를 달지 않아요
+  }
+
   /* ===== 시계 ===== */
   function tick() {
     const now = new Date();
@@ -1718,6 +1755,23 @@
   };
 
   const kakao = $('kakao'), room = $('kroom');
+
+  /* ----- 채팅방 '안 읽은 메시지' 표시 (빨간 1) -----
+     방을 열어서 본 메시지까지만 '읽음'으로 치고, 그 뒤에 새로 온 상대 메시지가 있으면 채팅 목록에 1이 떠요. */
+  const seenLen = {};
+  const totalLen = f => (chats[f.name] || []).reduce((n, d) => n + d.msgs.length, 0);
+  const markSeen = f => { if (f && !f.isGroup) seenLen[f.name] = totalLen(f); };
+  const unreadOf = f => {
+    let i = 0, n = 0;
+    (chats[f.name] || []).forEach(d => d.msgs.forEach(m => {
+      if (i >= (seenLen[f.name] || 0) && !m.me) n++;
+      i++;
+    }));
+    return n;
+  };
+  friendList.forEach(markSeen);   // 처음부터 있던 대화는 이미 읽은 걸로 시작
+  /* 홈 화면 카카오톡 아이콘: 모든 방의 안 읽은 메시지 합계 */
+  setInterval(() => setBadgeCount('kakao', friendList.reduce((n, f) => n + unreadOf(f), 0)), 300);
   let tab = 'friends';
   let activeFriend = friend;
   let selectedProfile = null;
@@ -1755,7 +1809,7 @@
         .filter(x => x.m)
         .map(({ f, i, m }) =>
           `<div class="srow click crow" data-friend-index="${i}">${avatar(f, 52)}` +
-          `<div class="ct"><b>${f.name}</b><div class="cl">${preview(m)}</div></div><div class="tm">${m.time}</div></div>`
+          `<div class="ct"><b>${f.name}</b><div class="cl">${preview(m)}</div></div><div class="tr"><div class="tm">${m.time}</div>${unreadOf(f) ? `<div class="ub">${unreadOf(f)}</div>` : ''}</div></div>`
         );
       const groupRows = groupChats.map((g, gi) => {
         const last = groupLastMessage(g);
@@ -1796,6 +1850,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     }).join('');
 
     $('rbody').scrollTop = $('rbody').scrollHeight;
+    if (room.classList.contains('show')) markSeen(activeFriend);   // 방을 보고 있는 중에 온 메시지는 바로 읽음
 
     /* 사진은 늦게 불러와지니까, 다 뜬 뒤에 다시 맨 아래로 */
     $('rbody').querySelectorAll('.chat-img').forEach(img =>
@@ -1808,6 +1863,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
   }
 
   function openRoom() {
+    markSeen(activeFriend);
     if (activeFriend && activeFriend.isGroup) {
       const g = activeFriend.group;
       $('rname').textContent = `${g.name} ${g.members.length}`;
@@ -1906,6 +1962,7 @@ chatRows.splice(visibleMyungIndex >= 0 ? visibleMyungIndex + 1 : 0, 0, ...groupR
     room.classList.remove('show');
     stopVoice();
     clearInput();
+    markSeen(activeFriend);
     /* 채팅 목록을 보고 있다면 미리보기·시간 갱신 */
     if (tab === 'chat') showTab('chat');
   });
@@ -2375,6 +2432,7 @@ const thumb = imgs.length === 0
   }
 
   function openBlog() {
+    clearBadge('blog');
     blogRequestPage = false;
     blogTab = 'home';
     $('blog').classList.add('show');
@@ -2383,6 +2441,7 @@ const thumb = imgs.length === 0
 
   function openBlogRequest() {
     hideBanner();
+    clearBadge('blog');
     if (!home.classList.contains('show')) {
       evOpenBlogAfterUnlock = true;
       openPass();
@@ -2421,6 +2480,7 @@ const thumb = imgs.length === 0
   $('nbHome').addEventListener('pointercancel', () => { nbHomeStart = null; });
 
   function showBlogRequestBanner() {
+    notifyBadge('blog');
     clearTimeout(evBannerTimer);
     clearInterval(evBannerTimer);
     bannerAfterHide = null;
@@ -2436,6 +2496,7 @@ const thumb = imgs.length === 0
 
   /* 블로그 새 글 알림 */
   function showBlogPostBanner(title) {
+    notifyBadge('blog');
     clearTimeout(evBannerTimer);
     clearInterval(evBannerTimer);
     bannerAfterHide = null;
@@ -3039,6 +3100,7 @@ const thumb = imgs.length === 0
 
   /* 카카오톡 알림이 사라진 다음 명재현의 인스타그램 스토리 알림 표시 */
   function showInstagramStoryBanner(sender = '명재현') {
+    notifyBadge('insta');
     clearTimeout(evBannerTimer);
     clearInterval(evBannerTimer);
     bannerAfterHide = null;
@@ -3613,6 +3675,7 @@ const thumb = imgs.length === 0
   });
 
   function openInsta() {
+    clearBadge('insta');
     insta.classList.add('show');
   }
 
